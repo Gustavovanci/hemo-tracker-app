@@ -1,0 +1,21 @@
+{
+  "name": "Hemo Eficiência Tracker",
+  "short_name": "HemoTracker",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#3b82f6",
+  "description": "Aplicativo para tracking de tempos e otimização de fluxo na Hemodinâmica do InCor.",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
