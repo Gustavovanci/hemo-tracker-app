@@ -1,3 +1,9 @@
+/* ARQUIVO: script.js
+  -------------------
+  Versão atualizada com a lógica para enviar os dados para o Google Sheets
+  através do Google Apps Script.
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- SELETORES DE ELEMENTOS DO DOM ---
@@ -19,21 +25,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let pacienteAtual = null;
     
     // --- CONFIGURAÇÕES ---
-    const SALAS = ["Sala 1", "Sala 2", "Sala 3", "Sala 4", "Sala 5"];
-    const LEITOS = ["Recuperação 1", "Recuperação 2", "UTI", "Apartamento", "Enfermaria", "Alta"];
+    // !!! IMPORTANTE: COLE A URL DO SEU GOOGLE APPS SCRIPT AQUI !!!
+    const URL_BACKEND = "https://script.google.com/macros/s/AKfycby14YB3un5ChITcRU6OED1ccnuCAUoZwpyjbJneQIeUm5BoiNJM4X5WODuGq_eNeP5v3w/exec";
+
+    const SALAS = ["", "Sala 1", "Sala 2", "Sala 3", "Sala 4", "Sala 5"];
+    const LEITOS = ["", "Recuperação 1", "Recuperação 2", "UTI", "Apartamento", "Enfermaria", "Alta"];
 
     // --- INICIALIZAÇÃO ---
     function popularDropdowns() {
         SALAS.forEach(sala => {
             const option = document.createElement('option');
             option.value = sala;
-            option.textContent = sala;
+            option.textContent = sala || "Selecione...";
             salaSelect.appendChild(option);
         });
         LEITOS.forEach(leito => {
             const option = document.createElement('option');
             option.value = leito;
-            option.textContent = leito;
+            option.textContent = leito || "Selecione...";
             leitoSelect.appendChild(option);
         });
     }
@@ -45,35 +54,24 @@ document.addEventListener('DOMContentLoaded', () => {
         pacienteAtual = decodedText;
         patientIdSpan.textContent = pacienteAtual;
         patientIdSpan.classList.add('active');
-        
-        // Para o scanner após sucesso
         pararScanner();
         checkoutBtn.disabled = false;
-        startScanBtn.textContent = 'Ler Novo Paciente';
+        startScanBtn.innerHTML = '<svg.../> Ler Novo Paciente';
     }
 
     function pararScanner() {
         if (html5QrCode && html5QrCode.isScanning) {
-            html5QrCode.stop()
-                .then(() => {
-                    console.log("Scanner parado com sucesso.");
-                    readerDiv.style.display = 'none';
-                })
-                .catch(err => console.error("Falha ao parar o scanner.", err));
+            html5QrCode.stop().catch(err => console.error("Falha ao parar o scanner.", err));
+            readerDiv.style.display = 'none';
         }
     }
 
     startScanBtn.addEventListener('click', () => {
         readerDiv.style.display = 'block';
-        html5QrCode = new Html5Qrcode("reader");
-        
+        html5QrCode = new Html5QrCode("reader");
         const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-        
         html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-            .catch(err => {
-                alert("Erro ao iniciar a câmera. Por favor, conceda a permissão e atualize a página.");
-                console.error("Erro ao iniciar o scanner:", err);
-            });
+            .catch(err => alert("Erro ao iniciar a câmera. Por favor, conceda a permissão."));
     });
 
     // --- LÓGICA DO CRONÔMETRO ---
@@ -86,13 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startStopBtn.addEventListener('click', () => {
         if (cronometroAtivo) {
-            // Pausar
             clearInterval(cronometroInterval);
-            startStopBtn.innerHTML = '<svg.../> Iniciar'; // Ícone de Play
+            startStopBtn.innerHTML = '<svg.../> Retomar';
             startStopBtn.classList.replace('btn-danger', 'btn-success');
         } else {
-            // Iniciar
-            startStopBtn.innerHTML = '<svg.../> Pausar'; // Ícone de Pause
+            startStopBtn.innerHTML = '<svg.../> Pausar';
             startStopBtn.classList.replace('btn-success', 'btn-danger');
             cronometroInterval = setInterval(() => {
                 tempoEmSegundos++;
@@ -107,12 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cronometroAtivo = false;
         tempoEmSegundos = 0;
         cronometroDisplay.textContent = '00:00:00';
-        startStopBtn.innerHTML = '<svg.../> Iniciar'; // Ícone de Play
+        startStopBtn.innerHTML = '<svg.../> Iniciar';
         startStopBtn.classList.replace('btn-danger', 'btn-success');
     });
 
-    // --- LÓGICA DO CHECKOUT ---
-    checkoutBtn.addEventListener('click', () => {
+    // --- LÓGICA DO CHECKOUT (COM ENVIO DE DADOS) ---
+    checkoutBtn.addEventListener('click', async () => {
         if (!pacienteAtual || !salaSelect.value || !leitoSelect.value) {
             alert("Por favor, leia um código de barras e selecione a sala e o leito.");
             return;
@@ -126,38 +122,50 @@ document.addEventListener('DOMContentLoaded', () => {
             timestampSaida: new Date().toISOString()
         };
 
-        // **AQUI É ONDE VOCÊ ENVIARIA OS DADOS PARA UMA API OU GOOGLE APPS SCRIPT**
-        // Exemplo:
-        // fetch('URL_DO_SEU_APPS_SCRIPT', {
-        //     method: 'POST',
-        //     body: JSON.stringify(dadosFinais),
-        //     headers: { 'Content-Type': 'application/json' }
-        // }).then(...);
+        // Mostra um feedback visual de que está a enviar
+        checkoutBtn.textContent = "A registar...";
+        checkoutBtn.disabled = true;
 
-        console.log("DADOS FINAIS REGISTRADOS:", dadosFinais);
-        alert(`Saída do paciente ${pacienteAtual} registrada com sucesso!`);
+        try {
+            const response = await fetch(URL_BACKEND, {
+                method: 'POST',
+                mode: 'no-cors', // Importante para Apps Script
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dadosFinais),
+                redirect: 'follow'
+            });
+            
+            // Como o modo 'no-cors' não permite ler a resposta,
+            // assumimos sucesso e damos feedback ao utilizador.
+            alert(`Saída do paciente ${pacienteAtual} registada com sucesso!`);
+            resetarInterface();
 
-        // Reseta a interface para o próximo paciente
-        resetarInterface();
+        } catch (error) {
+            console.error("Erro ao enviar dados:", error);
+            alert("Ocorreu um erro ao registar os dados. Tente novamente.");
+        } finally {
+            // Restaura o botão
+            checkoutBtn.innerHTML = '<svg.../> Finalizar Atendimento';
+            checkoutBtn.disabled = false;
+        }
     });
 
     function resetarInterface() {
-        resetBtn.click(); // Reseta o cronômetro
+        resetBtn.click();
         pacienteAtual = null;
         patientIdSpan.textContent = 'Nenhum';
         patientIdSpan.classList.remove('active');
         salaSelect.value = '';
         leitoSelect.value = '';
         checkoutBtn.disabled = true;
-        startScanBtn.textContent = 'Ler Código de Barras do Paciente';
+        startScanBtn.innerHTML = '<svg.../> Ler Código de Barras do Paciente';
     }
     
     // --- REGISTRO DO SERVICE WORKER (PWA) ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service worker registrado:', reg))
-                .catch(err => console.error('Erro no registro do service worker:', err));
+            navigator.serviceWorker.register('/sw.js');
         });
     }
 });
