@@ -1,0 +1,12 @@
+{
+  "name": "hemotracker",
+  "version": "1.0.0",
+  "description": "Aplicativo para tracking de tempos na Hemodinâmica",
+  "main": "index.html",
+  "scripts": {
+    "build": "npx tailwindcss -i ./input.css -o ./output.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
