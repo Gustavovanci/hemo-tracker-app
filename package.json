@@ -1,12 +1,87 @@
 {
-  "name": "hemotracker",
-  "version": "1.0.0",
-  "description": "Aplicativo para tracking de tempos na Hemodinâmica",
+  "name": "hemoflow-tracker",
+  "version": "2.0.0",
+  "description": "Sistema avançado para tracking de fluxo e otimização de tempo na Hemodinâmica com timeline visual, métricas em tempo real e integração Google Sheets",
   "main": "index.html",
-   "scripts": {
-  "build": "npx tailwindcss -i ./input.css -o ./public/output.css"
-},
+  "scripts": {
+    "build": "npx tailwindcss -i ./input.css -o ./output.css --watch",
+    "build-prod": "npx tailwindcss -i ./input.css -o ./output.css --minify",
+    "dev": "npx tailwindcss -i ./input.css -o ./output.css --watch",
+    "preview": "npx serve .",
+    "deploy": "npm run build-prod && echo 'Build completo! Pronto para deploy.'",
+    "clean": "rm -f output.css",
+    "validate": "npx html-validate index.html",
+    "lighthouse": "npx lighthouse http://localhost:3000 --view"
+  },
+  "keywords": [
+    "hemodinamica",
+    "tracking", 
+    "timeline",
+    "healthcare",
+    "medical",
+    "pwa",
+    "google-sheets",
+    "metrics",
+    "workflow",
+    "barcode-scanner"
+  ],
+  "author": {
+    "name": "Equipe HemoFlow",
+    "email": "contato@hemoflow.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/hemoflow-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/hemoflow-tracker/issues"
+  },
+  "homepage": "https://hemoflow-tracker.vercel.app",
   "devDependencies": {
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.17",
+    "@tailwindcss/forms": "^0.5.9",
+    "@tailwindcss/typography": "^0.5.15",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "postcss-cli": "^11.0.0"
+  },
+  "optionalDependencies": {
+    "serve": "^14.2.4",
+    "html-validate": "^8.27.0",
+    "lighthouse": "^12.2.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "pwa": {
+    "name": "HemoFlow - Sistema Avançado de Tracking",
+    "short_name": "HemoFlow",
+    "description": "Sistema para tracking de fluxo na Hemodinâmica",
+    "theme_color": "#1e1b4b",
+    "background_color": "#667eea",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/",
+    "orientation": "portrait"
+  },
+  "config": {
+    "tailwindcss": {
+      "input": "./input.css",
+      "output": "./output.css",
+      "config": "./tailwind.config.js"
+    }
+  },
+  "dependencies": {},
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/Gustavovanci"
   }
 }

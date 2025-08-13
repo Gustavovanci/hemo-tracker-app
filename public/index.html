@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Título e Metadados do PWA -->
-    <title>Hemo Eficiência Tracker</title>
-    <meta name="theme-color" content="#3b82f6">
+    <title>HemoFlow - Tracker Avançado</title>
+    <meta name="theme-color" content="#1e1b4b">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
@@ -14,75 +14,564 @@
     <link href="output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Estilos customizados -->
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glass morphism cards */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* Scanner */
+        .scan-button {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .scan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .scan-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Patient Info */
+        .patient-info {
+            text-align: center;
+            color: white;
+        }
+
+        .patient-id {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            padding: 1rem;
+            background: rgba(6, 182, 212, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            margin-top: 1rem;
+        }
+
+        /* Timeline */
+        .timeline-container {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 1.5rem;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator.pending {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .step-indicator.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .step-indicator.completed {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            animation: completePulse 0.6s ease-out;
+        }
+
+        .step-content {
+            flex: 1;
+            color: white;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-time {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Courier New', monospace;
+        }
+
+        .step-duration {
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 29px;
+            top: 60px;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-button {
+            padding: 1rem;
+            border: none;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .action-button.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .action-button.danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Form elements */
+        .form-select {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-select option {
+            background: var(--dark);
+            color: white;
+        }
+
+        .form-label {
+            color: white;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes completePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 <body class="bg-slate-100 font-sans">
 
     <div class="container mx-auto max-w-2xl p-4">
         
         <!-- Cabeçalho -->
-        <header class="flex items-center justify-center text-blue-500 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            <h1 class="text-2xl md:text-3xl font-bold">Hemo Eficiência Tracker</h1>
+        <header class="header">
+            <h1>🫀 HemoFlow</h1>
+            <p>Sistema Avançado de Tracking Hemodinâmico</p>
         </header>
 
-        <main class="space-y-6">
-            <!-- Card do Scanner -->
-            <div class="card">
-                <div id="reader" class="w-full rounded-lg overflow-hidden"></div>
-                <button id="start-scan-btn" class="btn btn-primary mt-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                    Ler Código de Barras do Paciente
+        <!-- Scanner Section -->
+        <div class="glass-card">
+            <div id="reader" class="w-full rounded-lg overflow-hidden" style="display: none;"></div>
+            <button id="start-scan-btn" class="scan-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
+                </svg>
+                Escanear Pulseira do Paciente
+            </button>
+            
+            <div class="patient-info" id="patient-info" style="display: none;">
+                <h3>📋 Paciente Identificado</h3>
+                <div class="patient-id" id="patient-id"></div>
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <div class="glass-card" id="timeline-section" style="display: none;">
+            <h2 style="color: white; text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">
+                ⏱️ Timeline do Procedimento
+            </h2>
+            
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                
+                <div class="timeline-step" data-step="1">
+                    <div class="step-indicator pending" id="step1">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Chegada na Hemodinâmica</div>
+                        <div class="step-time" id="time1">--:--:--</div>
+                        <div class="step-duration" id="duration1"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="2">
+                    <div class="step-indicator pending" id="step2">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Entrada na Sala</div>
+                        <div class="step-time" id="time2">--:--:--</div>
+                        <div class="step-duration" id="duration2"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="3">
+                    <div class="step-indicator pending" id="step3">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Início da Cobertura</div>
+                        <div class="step-time" id="time3">--:--:--</div>
+                        <div class="step-duration" id="duration3"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="4">
+                    <div class="step-indicator pending" id="step4">4</div>
+                    <div class="step-content">
+                        <div class="step-title">Término da Cobertura</div>
+                        <div class="step-time" id="time4">--:--:--</div>
+                        <div class="step-duration" id="duration4"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="5">
+                    <div class="step-indicator pending" id="step5">5</div>
+                    <div class="step-content">
+                        <div class="step-title">Início do Procedimento</div>
+                        <div class="step-time" id="time5">--:--:--</div>
+                        <div class="step-duration" id="duration5"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="6">
+                    <div class="step-indicator pending" id="step6">6</div>
+                    <div class="step-content">
+                        <div class="step-title">Término do Procedimento</div>
+                        <div class="step-time" id="time6">--:--:--</div>
+                        <div class="step-duration" id="duration6"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="7">
+                    <div class="step-indicator pending" id="step7">7</div>
+                    <div class="step-content">
+                        <div class="step-title">Saída da Sala</div>
+                        <div class="step-time" id="time7">--:--:--</div>
+                        <div class="step-duration" id="duration7"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="8">
+                    <div class="step-indicator pending" id="step8">8</div>
+                    <div class="step-content">
+                        <div class="step-title">Início da Limpeza</div>
+                        <div class="step-time" id="time8">--:--:--</div>
+                        <div class="step-duration" id="duration8"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-step" data-step="9">
+                    <div class="step-indicator pending" id="step9">9</div>
+                    <div class="step-content">
+                        <div class="step-title">Término da Limpeza</div>
+                        <div class="step-time" id="time9">--:--:--</div>
+                        <div class="step-duration" id="duration9"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-button success" id="next-step-btn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
+                    </svg>
+                    Próxima Etapa
+                </button>
+                <button class="action-button danger" id="reset-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" />
+                    </svg>
+                    Resetar
                 </button>
             </div>
+        </div>
 
-            <!-- Card de Informações -->
-            <div class="card">
-                <h2 class="card-title">Paciente em Atendimento</h2>
-                <div class="space-y-2 text-lg">
-                    <p><strong>ID:</strong> <span id="patient-id" class="info-value">Nenhum</span></p>
-                    <!-- Funcionalidade futura: buscar nome do paciente -->
-                    <!-- <p><strong>Nome:</strong> <span id="patient-name" class="info-value">Aguardando leitura...</span></p> -->
+        <!-- Stats Dashboard -->
+        <div class="glass-card" id="stats-section" style="display: none;">
+            <h2 style="color: white; text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem;">
+                📊 Métricas do Procedimento
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-time">--</div>
+                    <div class="stat-label">Tempo Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="procedure-time">--</div>
+                    <div class="stat-label">Tempo de Procedimento</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="setup-time">--</div>
+                    <div class="stat-label">Tempo de Preparação</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="cleaning-time">--</div>
+                    <div class="stat-label">Tempo de Limpeza</div>
                 </div>
             </div>
+        </div>
 
-            <!-- Card do Cronômetro -->
-            <div class="card">
-                <h2 class="card-title">Cronômetro do Procedimento</h2>
-                <div id="cronometro-display" class="text-5xl md:text-7xl font-bold text-center py-4 text-slate-800">00:00:00</div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button id="start-stop-btn" class="btn btn-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg>
-                        Iniciar
-                    </button>
-                    <button id="reset-btn" class="btn btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" /></svg>
-                        Resetar
-                    </button>
-                </div>
+        <!-- Final Actions -->
+        <div class="glass-card" id="final-section" style="display: none;">
+            <h2 style="color: white; text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem;">
+                ✅ Finalizar Atendimento
+            </h2>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="sala-select" class="form-label">
+                    🏥 Sala:
+                </label>
+                <select id="sala-select" class="form-select">
+                    <option value="">Selecione a sala...</option>
+                    <option value="Sala 1">Sala 1</option>
+                    <option value="Sala 2">Sala 2</option>
+                    <option value="Sala 3">Sala 3</option>
+                    <option value="Sala 4">Sala 4</option>
+                    <option value="Sala 5">Sala 5</option>
+                </select>
             </div>
-
-            <!-- Card de Checkout -->
-            <div class="card">
-                <h2 class="card-title">Registrar Saída e Liberar Sala</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label for="sala-select" class="block font-medium mb-1">Sala:</label>
-                        <select id="sala-select" class="input-field"></select>
-                    </div>
-                    <div>
-                        <label for="leito-select" class="block font-medium mb-1">Leito de Destino:</label>
-                        <select id="leito-select" class="input-field"></select>
-                    </div>
-                    <button id="checkout-btn" class="btn btn-primary w-full" disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Finalizar Atendimento
-                    </button>
-                </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label for="leito-select" class="form-label">
+                    🏃‍♂️ Destino do Paciente:
+                </label>
+                <select id="leito-select" class="form-select">
+                    <option value="">Selecione o destino...</option>
+                    <option value="Recuperação 1">Recuperação 1</option>
+                    <option value="Recuperação 2">Recuperação 2</option>
+                    <option value="UTI">UTI</option>
+                    <option value="Apartamento">Apartamento</option>
+                    <option value="Enfermaria">Enfermaria</option>
+                    <option value="Alta">Alta</option>
+                </select>
             </div>
-        </main>
+            
+            <button class="action-button primary" id="checkout-btn" style="width: 100%;" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17L4 12" />
+                </svg>
+                Salvar no Google Sheets
+            </button>
+        </div>
     </div>
 
     <!-- Bibliotecas e Scripts -->

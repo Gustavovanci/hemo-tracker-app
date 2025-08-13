@@ -1,67 +1,272 @@
-# Hemo Eficiência Tracker - MVP
+# 🫀 HemoFlow - Sistema Avançado de Tracking Hemodinâmico
 
-Este é um MVP (Produto Mínimo Viável) de um PWA (Progressive Web App) para tracking de tempos de procedimento na Hemodinâmica. Ele foi construído com HTML, Tailwind CSS e JavaScript puro.
+## 📋 Visão Geral
 
-## Funcionalidades
+O **HemoFlow** é um sistema avançado de tracking para otimização de fluxo na Hemodinâmica, desenvolvido como PWA (Progressive Web App) com design disruptivo e integração completa com Google Sheets.
 
-- **Leitor de Código de Barras:** Utiliza a câmera do dispositivo para ler o código de barras da pulseira do paciente.
-- **Cronômetro:** Permite iniciar, pausar e resetar um cronômetro para medir o tempo do procedimento.
-- **Registro de Saída:** Captura a sala, o leito de destino e o tempo final do procedimento.
-- **PWA Instalável:** Pode ser adicionado à tela inicial de dispositivos móveis para uma experiência de aplicativo nativo.
+### ✨ Principais Funcionalidades
 
-## Pré-requisitos
+- 📱 **PWA Nativo** - Instalável como app no celular
+- 📷 **Scanner de Código de Barras** - Leitura de pulseiras de pacientes
+- ⏱️ **Timeline Visual Interativa** - 9 checkpoints de tempo precisos
+- 📊 **Métricas em Tempo Real** - Cálculo automático de KPIs
+- 🔗 **Integração Google Sheets** - Banco de dados automático
+- 🎨 **Design Glassmorphism** - Interface moderna e intuitiva
+- 📈 **Dashboard Analítico** - Identificação de gargalos
 
-- [Node.js](https://nodejs.org/) (que inclui o npm)
-- [Visual Studio Code](https://code.visualstudio.com/)
-- Extensão "Live Server" para o VS Code
+## 🎯 Checkpoints de Tempo
 
-## Configuração do Ambiente de Desenvolvimento
+O sistema coleta dados em **9 etapas precisas**:
 
-1.  **Clone o Repositório:**
-    Se você subir este projeto para o GitHub, clone seu repositório. Caso contrário, apenas crie a pasta `HemoTracker` e os arquivos conforme descrito.
+1. **Chegada na Hemodinâmica**
+2. **Entrada na Sala**
+3. **Início da Cobertura** (panos cirúrgicos)
+4. **Término da Cobertura**
+5. **Início do Procedimento**
+6. **Término do Procedimento**
+7. **Saída da Sala**
+8. **Início da Limpeza**
+9. **Término da Limpeza**
 
-2.  **Crie os Ícones:**
-    Dentro da pasta do projeto, crie uma subpasta chamada `icons`. Crie duas imagens quadradas e salve-as como `icon-192x192.png` e `icon-512x512.png`.
+## 📊 Métricas Calculadas
 
-3.  **Instale as Dependências:**
-    Abra um terminal dentro da pasta do projeto e instale o Tailwind CSS:
-    ```bash
-    npm install -D tailwindcss
-    npx tailwindcss init
-    ```
-    Isso irá instalar o Tailwind e criar o arquivo `tailwind.config.js`. Substitua o conteúdo do `tailwind.config.js` gerado pelo que foi fornecido neste projeto.
+### Tempos Principais
+- **Tempo Total** - Do início ao fim da limpeza
+- **Tempo de Giro** - Para liberação da sala
+- **Tempo de Procedimento** - Duração do procedimento
+- **Tempo de Preparação** - Entrada até início do procedimento
+- **Tempo de Limpeza** - Duração da higienização
 
-## Rodando o Projeto Localmente
+### Análises Disponíveis
+- Gargalos por etapa
+- Performance por sala
+- Padrões por período do dia
+- Eficiência da equipe
+- Tempo médio de rotatividade
 
-1.  **Compile o CSS com Tailwind:**
-    No terminal, execute o seguinte comando. Ele irá "observar" seu arquivo `input.css` e gerar o `output.css` automaticamente sempre que você fizer uma alteração.
-    ```bash
-    npx tailwindcss -i ./input.css -o ./output.css --watch
-    ```
-    **Importante:** Deixe este terminal rodando enquanto você desenvolve.
+## 🚀 Configuração e Deploy
 
-2.  **Inicie o Servidor Local:**
-    Abra um novo terminal ou use a interface do VS Code. Clique com o botão direito no arquivo `index.html` e selecione **"Open with Live Server"**.
-    Seu aplicativo será aberto no navegador em um endereço como `http://127.0.0.1:5500`.
+### Pré-requisitos
+- Node.js 16+
+- Conta Google (para Google Sheets)
+- Vercel CLI (para deploy)
 
-## Implantação na Vercel
+### 1. Instalação Local
 
-1.  **Crie um Repositório no GitHub:**
-    - Crie uma conta no [GitHub](https://github.com/).
-    - Crie um novo repositório e envie todos os arquivos do seu projeto para ele.
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/hemoflow-tracker.git
+cd hemoflow-tracker
 
-2.  **Conecte à Vercel:**
-    - Crie uma conta gratuita na [Vercel](https://vercel.com/) e conecte-a à sua conta do GitHub.
-    - No dashboard da Vercel, clique em "Add New..." -> "Project".
-    - Selecione o repositório do seu projeto no GitHub e clique em "Import".
+# Instale dependências
+npm install
 
-3.  **Configure e Implante:**
-    - A Vercel deve detectar automaticamente que é um projeto estático.
-    - Na seção "Build and Output Settings", clique em "Override" ao lado de "Build Command".
-    - No campo do "Build Command", cole o seguinte comando:
-      ```bash
-      npm install tailwindcss && npx tailwindcss -i ./input.css -o ./output.css
-      ```
-    - Clique em **"Deploy"**.
+# Build do CSS
+npm run build
 
-A Vercel irá instalar o Tailwind, compilar seu CSS e implantar seu site. Em menos de um minuto, você terá um link HTTPS público para seu aplicativo, pronto para ser compartilhado e instalado em qualquer celular.
+# Servidor local
+npm run preview
+```
+
+### 2. Configuração Google Sheets
+
+#### Criar a Planilha
+1. Acesse [Google Sheets](https://sheets.google.com)
+2. Crie nova planilha: "HemoFlow - Dados Hemodinâmica"
+3. Copie o **ID da planilha** da URL
+
+#### Configurar Google Apps Script
+1. Na planilha: `Extensões > Apps Script`
+2. Cole o código do Google Apps Script fornecido
+3. Substitua `SEU_SPREADSHEET_ID_AQUI` pelo ID da planilha
+4. Salve como "HemoFlow Script"
+
+#### Deploy do Script
+1. No Apps Script: `Implantar > Nova implantação`
+2. Tipo: "Aplicativo da Web"
+3. Executar como: **Eu**
+4. Acesso: **Qualquer pessoa**
+5. Copie a **URL do aplicativo web**
+
+#### Atualizar o App
+No arquivo `script.js`, substitua:
+```javascript
+const URL_BACKEND = "COLE_SUA_URL_AQUI";
+```
+
+### 3. Deploy no Vercel
+
+```bash
+# Instalar Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Deploy em produção
+vercel --prod
+```
+
+### 4. Estrutura das Planilhas
+
+O sistema criará automaticamente 3 abas:
+
+#### 📊 **Dashboard**
+- Métricas em tempo real
+- Total de pacientes do dia
+- Tempos médios por etapa
+- Análise por sala
+
+#### 📝 **Resumo por Paciente**
+- Uma linha por paciente
+- Todas as métricas calculadas
+- Tempos de cada etapa
+- Ideal para relatórios
+
+#### 🔍 **Dados Detalhados**
+- Cada etapa como linha separada
+- Horário exato de cada checkpoint
+- Duração entre etapas
+- Ideal para análises granulares
+
+## 🎨 Recursos do Design
+
+### Visual Moderno
+- **Glassmorphism** com efeitos de blur
+- **Gradientes vibrantes** e animações fluidas
+- **Timeline visual** interativa
+- **Feedback em tempo real**
+
+### UX Otimizada
+- Interface intuitiva com ícones claros
+- Animações de sucesso e loading
+- Responsivo para mobile e desktop
+- Modo offline (PWA)
+
+### Performance
+- Service Worker otimizado
+- Cache inteligente de recursos
+- Sincronização em background
+- Carregamento instantâneo
+
+## 📱 Uso do Aplicativo
+
+### 1. Escanear Paciente
+- Toque em "Escanear Pulseira do Paciente"
+- Permita acesso à câmera
+- Escaneie o código de barras da pulseira
+
+### 2. Timeline do Procedimento
+- Após escanear, aparece a timeline
+- Toque em "Próxima Etapa" conforme o progresso
+- O sistema registra horário automaticamente
+- Cada etapa muda de cor ao ser concluída
+
+### 3. Métricas Automáticas
+- Após todas as etapas, veja as métricas
+- Tempos são calculados automaticamente
+- Dashboard mostra KPIs principais
+
+### 4. Finalizar Atendimento
+- Selecione a sala utilizada
+- Escolha o destino do paciente
+- Toque em "Salvar no Google Sheets"
+- Dados são enviados automaticamente
+
+## 🔧 Scripts Disponíveis
+
+```bash
+# Desenvolvimento com watch mode
+npm run dev
+
+# Build para produção
+npm run build-prod
+
+# Limpar arquivos gerados
+npm run clean
+
+# Servidor local
+npm run preview
+
+# Deploy completo
+npm run deploy
+
+# Validar HTML
+npm run validate
+
+# Análise de performance
+npm run lighthouse
+```
+
+## 📊 Monitoramento e Análise
+
+### Dashboards Disponíveis
+
+#### Métricas Diárias
+- Total de pacientes atendidos
+- Tempo médio por procedimento
+- Identificação de gargalos
+- Performance por sala
+
+#### Análise Semanal/Mensal
+- Tendências de tempo
+- Padrões por período
+- Eficiência da equipe
+- Relatórios personalizados
+
+### Exportação de Dados
+- Dados em tempo real no Google Sheets
+- Exportação para Excel/CSV
+- Gráficos automáticos
+- Relatórios personalizáveis
+
+## 🔒 Segurança e Privacidade
+
+- **HTTPS obrigatório** - Comunicação criptografada
+- **Dados anônimos** - Apenas IDs de pacientes
+- **Acesso controlado** - Permissões no Google Sheets
+- **Cache local** - Funcionamento offline
+
+## 🆘 Solução de Problemas
+
+### Câmera não funciona
+- Verifique permissões do navegador
+- Use HTTPS (obrigatório para câmera)
+- Teste em dispositivo diferente
+
+### Dados não salvam
+- Verifique a URL do Google Apps Script
+- Confirme permissões do script
+- Teste conexão com internet
+
+### PWA não instala
+- Use navegador compatível (Chrome/Safari)
+- Acesse via HTTPS
+- Verifique manifest.json
+
+### Performance lenta
+- Execute `npm run build-prod`
+- Verifique cache do navegador
+- Analise com `npm run lighthouse`
+
+## 🤝 Contribuição
+
+1. Fork o repositório
+2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
+3. Commit: `git commit -m 'Adiciona nova funcionalidade'`
+4. Push: `git push origin feature/nova-funcionalidade`
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 🆘 Suporte
+
+- 📧 Email: contato@hemoflow.com
+- 🐛 Issues: [GitHub Issues](https://github.com/seu-usuario/hemoflow-tracker/issues)
+- 📚 Docs: [Wiki do Projeto](https://github.com/seu-usuario/hemoflow-tracker/wiki)
+
+---
+
+**Desenvolvido com ❤️ para otimizar o fluxo da Hemodinâmica**
