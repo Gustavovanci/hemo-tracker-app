@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Título e Metadados do PWA -->
+    <title>Hemo Eficiência Tracker</title>
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+    <!-- Estilos -->
+    <link href="output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 font-sans">
+
+    <div class="container mx-auto max-w-2xl p-4">
+        
+        <!-- Cabeçalho -->
+        <header class="flex items-center justify-center text-blue-500 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <h1 class="text-2xl md:text-3xl font-bold">Hemo Eficiência Tracker</h1>
+        </header>
+
+        <main class="space-y-6">
+            <!-- Card do Scanner -->
+            <div class="card">
+                <div id="reader" class="w-full rounded-lg overflow-hidden"></div>
+                <button id="start-scan-btn" class="btn btn-primary mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    Ler Código de Barras do Paciente
+                </button>
+            </div>
+
+            <!-- Card de Informações -->
+            <div class="card">
+                <h2 class="card-title">Paciente em Atendimento</h2>
+                <div class="space-y-2 text-lg">
+                    <p><strong>ID:</strong> <span id="patient-id" class="info-value">Nenhum</span></p>
+                    <!-- Funcionalidade futura: buscar nome do paciente -->
+                    <!-- <p><strong>Nome:</strong> <span id="patient-name" class="info-value">Aguardando leitura...</span></p> -->
+                </div>
+            </div>
+
+            <!-- Card do Cronômetro -->
+            <div class="card">
+                <h2 class="card-title">Cronômetro do Procedimento</h2>
+                <div id="cronometro-display" class="text-5xl md:text-7xl font-bold text-center py-4 text-slate-800">00:00:00</div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="start-stop-btn" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg>
+                        Iniciar
+                    </button>
+                    <button id="reset-btn" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" /></svg>
+                        Resetar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card de Checkout -->
+            <div class="card">
+                <h2 class="card-title">Registrar Saída e Liberar Sala</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="sala-select" class="block font-medium mb-1">Sala:</label>
+                        <select id="sala-select" class="input-field"></select>
+                    </div>
+                    <div>
+                        <label for="leito-select" class="block font-medium mb-1">Leito de Destino:</label>
+                        <select id="leito-select" class="input-field"></select>
+                    </div>
+                    <button id="checkout-btn" class="btn btn-primary w-full" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Finalizar Atendimento
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bibliotecas e Scripts -->
+    <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
