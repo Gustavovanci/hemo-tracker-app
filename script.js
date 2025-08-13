@@ -1,7 +1,9 @@
-/* ARQUIVO: script.js
+/*
+  ARQUIVO: script.js
   -------------------
-  Versão atualizada com a lógica para enviar os dados para o Google Sheets
-  através do Google Apps Script.
+  Versão Final e Completa
+  Esta é a lógica principal do seu aplicativo. Controla o scanner, o cronómetro,
+  a interação do utilizador e o registo dos dados na sua planilha Google.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         patientIdSpan.classList.add('active');
         pararScanner();
         checkoutBtn.disabled = false;
-        startScanBtn.innerHTML = '<svg.../> Ler Novo Paciente';
+        startScanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" /></svg> Ler Novo Paciente';
     }
 
     function pararScanner() {
@@ -85,10 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
     startStopBtn.addEventListener('click', () => {
         if (cronometroAtivo) {
             clearInterval(cronometroInterval);
-            startStopBtn.innerHTML = '<svg.../> Retomar';
+            startStopBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg> Retomar';
             startStopBtn.classList.replace('btn-danger', 'btn-success');
         } else {
-            startStopBtn.innerHTML = '<svg.../> Pausar';
+            startStopBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Pausar';
             startStopBtn.classList.replace('btn-success', 'btn-danger');
             cronometroInterval = setInterval(() => {
                 tempoEmSegundos++;
@@ -103,12 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cronometroAtivo = false;
         tempoEmSegundos = 0;
         cronometroDisplay.textContent = '00:00:00';
-        startStopBtn.innerHTML = '<svg.../> Iniciar';
+        startStopBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg> Iniciar';
         startStopBtn.classList.replace('btn-danger', 'btn-success');
     });
 
     // --- LÓGICA DO CHECKOUT (COM ENVIO DE DADOS) ---
-    checkoutBtn.addEventListener('click', async () => {
+    checkoutBtn.addEventListener('click', () => {
         if (!pacienteAtual || !salaSelect.value || !leitoSelect.value) {
             alert("Por favor, leia um código de barras e selecione a sala e o leito.");
             return;
@@ -122,33 +124,29 @@ document.addEventListener('DOMContentLoaded', () => {
             timestampSaida: new Date().toISOString()
         };
 
-        // Mostra um feedback visual de que está a enviar
         checkoutBtn.textContent = "A registar...";
         checkoutBtn.disabled = true;
 
-        try {
-            const response = await fetch(URL_BACKEND, {
-                method: 'POST',
-                mode: 'no-cors', // Importante para Apps Script
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dadosFinais),
-                redirect: 'follow'
-            });
-            
-            // Como o modo 'no-cors' não permite ler a resposta,
-            // assumimos sucesso e damos feedback ao utilizador.
-            alert(`Saída do paciente ${pacienteAtual} registada com sucesso!`);
+        fetch(URL_BACKEND, {
+            method: 'POST',
+            mode: 'no-cors', // 'no-cors' é a forma mais simples de evitar erros de CORS com o Google Apps Script
+            body: JSON.stringify(dadosFinais),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(() => {
+            // Como o 'no-cors' não nos deixa ler a resposta, assumimos sucesso
+            alert(`Saída do paciente ${pacienteAtual} registada com sucesso! Verifique a planilha.`);
             resetarInterface();
-
-        } catch (error) {
+        })
+        .catch(error => {
             console.error("Erro ao enviar dados:", error);
             alert("Ocorreu um erro ao registar os dados. Tente novamente.");
-        } finally {
-            // Restaura o botão
-            checkoutBtn.innerHTML = '<svg.../> Finalizar Atendimento';
-            checkoutBtn.disabled = false;
-        }
+        })
+        .finally(() => {
+            // Restaura o botão para o estado inicial
+            checkoutBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Finalizar Atendimento';
+            // O botão só será reativado quando um novo paciente for lido
+        });
     });
 
     function resetarInterface() {
@@ -159,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         salaSelect.value = '';
         leitoSelect.value = '';
         checkoutBtn.disabled = true;
-        startScanBtn.innerHTML = '<svg.../> Ler Código de Barras do Paciente';
+        startScanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Ler Código de Barras do Paciente';
     }
     
     // --- REGISTRO DO SERVICE WORKER (PWA) ---
