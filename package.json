@@ -1,0 +1,30 @@
+{
+  "name": "hemoflow-tracker",
+  "version": "2.0.0",
+  "description": "Sistema avançado para tracking de fluxo e otimização de tempo na Hemodinâmica",
+  "main": "index.html",
+  "scripts": {
+    "build": "npx tailwindcss -i ./input.css -o ./output.css --minify",
+    "dev": "npx tailwindcss -i ./input.css -o ./output.css --watch",
+    "preview": "npx serve .",
+    "clean": "rm -f output.css"
+  },
+  "keywords": [
+    "hemodinamica",
+    "tracking",
+    "healthcare",
+    "pwa",
+    "google-sheets"
+  ],
+  "author": "Equipe HemoFlow",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "vercel": "^44.7.3"
+  }
+}
