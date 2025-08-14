@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "public/**/*",
-      "use": "@vercel/static"
-    }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "routes": [
+    {
+      "src": "/output.css",
+      "dest": "/output.css"
+    },
     {
       "src": "/(.*)",
       "dest": "/public/$1"
