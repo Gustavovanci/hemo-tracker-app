@@ -1,31 +1,26 @@
 {
-  "name": "HemoFlow - Sistema Avançado de Tracking",
+  "name": "HemoFlow - Sistema Avançado de Analytics Hemodinâmico",
   "short_name": "HemoFlow",
-  "description": "Sistema avançado para tracking de fluxo e otimização de tempo na Hemodinâmica com timeline visual e métricas em tempo real.",
+  "description": "Sistema disruptivo para tracking, analytics preditivos e otimização de fluxo em Hemodinâmica com IA integrada e insights em tempo real.",
+  "version": "3.0.0",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#1e1b4b",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "scope": "/",
   "lang": "pt-BR",
-  "categories": ["medical", "productivity", "healthcare"],
-  "screenshots": [
-    {
-      "src": "icons/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "platform": "narrow",
-      "label": "Timeline do procedimento no mobile"
-    },
-    {
-      "src": "icons/screenshot-desktop.png", 
-      "sizes": "1280x720",
-      "type": "image/png",
-      "platform": "wide",
-      "label": "Dashboard completo no desktop"
-    }
+  "dir": "ltr",
+  
+  "theme_color": "#1e1b4b",
+  "background_color": "#667eea",
+  
+  "categories": [
+    "medical",
+    "healthcare",
+    "productivity",
+    "analytics",
+    "business"
   ],
+  
   "icons": [
     {
       "src": "icons/icon-72x72.png",
@@ -76,41 +71,102 @@
       "purpose": "any maskable"
     }
   ],
+  
+  "screenshots": [
+    {
+      "src": "screenshots/mobile-timeline.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Timeline de procedimento com analytics preditivos"
+    },
+    {
+      "src": "screenshots/mobile-scanner.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Scanner de QR Code com identificação automática"
+    },
+    {
+      "src": "screenshots/desktop-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Dashboard completo com métricas e insights"
+    },
+    {
+      "src": "screenshots/desktop-analytics.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Analytics avançados e detecção de gargalos"
+    }
+  ],
+  
   "shortcuts": [
     {
       "name": "Novo Paciente",
       "short_name": "Escanear",
-      "description": "Iniciar tracking de novo paciente",
+      "description": "Iniciar tracking de novo paciente rapidamente",
       "url": "/?action=scan",
       "icons": [
         {
-          "src": "icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "icons/shortcuts/scan-icon.png",
+          "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "Resetar Sistema",
-      "short_name": "Reset",
-      "description": "Resetar o sistema para novo uso",
-      "url": "/?action=reset",
+      "name": "Dashboard",
+      "short_name": "Analytics",
+      "description": "Ver analytics e métricas em tempo real",
+      "url": "/?action=dashboard",
       "icons": [
         {
-          "src": "icons/icon-192x192.png", 
-          "sizes": "192x192"
+          "src": "icons/shortcuts/dashboard-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Relatórios",
+      "short_name": "Relatórios",
+      "description": "Acessar relatórios e insights históricos",
+      "url": "/?action=reports",
+      "icons": [
+        {
+          "src": "icons/shortcuts/reports-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Configurações",
+      "short_name": "Config",
+      "description": "Configurar sistema e preferências",
+      "url": "/?action=settings",
+      "icons": [
+        {
+          "src": "icons/shortcuts/settings-icon.png",
+          "sizes": "96x96"
         }
       ]
     }
   ],
+  
   "related_applications": [],
   "prefer_related_applications": false,
+  
   "edge_side_panel": {
-    "preferred_width": 400
+    "preferred_width": 420
   },
+  
   "launch_handler": {
     "client_mode": "focus-existing"
   },
+  
   "handle_links": "preferred",
+  
   "share_target": {
     "action": "/share-target/",
     "method": "POST",
@@ -122,9 +178,87 @@
       "files": [
         {
           "name": "files",
-          "accept": ["image/*", ".pdf"]
+          "accept": [
+            "image/*",
+            ".pdf",
+            ".csv",
+            ".xlsx"
+          ]
         }
       ]
     }
-  }
+  },
+  
+  "file_handlers": [
+    {
+      "action": "/file-handler/",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/vnd.ms-excel": [".xls"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      }
+    }
+  ],
+  
+  "protocol_handlers": [
+    {
+      "protocol": "hemoflow",
+      "url": "/?protocol=%s"
+    }
+  ],
+  
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  
+  "features": [
+    "camera",
+    "notifications",
+    "background-sync",
+    "offline-storage"
+  ],
+  
+  "permissions": [
+    "camera",
+    "notifications",
+    "background-sync",
+    "storage"
+  ],
+  
+  "custom": {
+    "medical_device_class": "software",
+    "target_audience": "healthcare_professionals",
+    "data_retention_days": 2555,
+    "encryption": "AES-256",
+    "compliance": ["HIPAA", "LGPD"],
+    "analytics_provider": "internal",
+    "update_frequency": "weekly",
+    "support_contact": "suporte@hemoflow.com",
+    "documentation_url": "https://docs.hemoflow.com",
+    "api_version": "v3.0",
+    "minimum_browser_version": {
+      "chrome": "88",
+      "firefox": "85",
+      "safari": "14",
+      "edge": "88"
+    }
+  },
+  
+  "monetization": {
+    "payment_pointer": "$ilp.uphold.com/hemoflow"
+  },
+  
+  "gcm_sender_id": "103953800507",
+  
+  "gcm_user_visible_only": true,
+  
+  "orientation": "portrait-primary",
+  
+  "splash_pages": null,
+  
+  "prefer_related_applications": false
 }
