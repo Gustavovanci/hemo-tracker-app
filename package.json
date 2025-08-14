@@ -5,6 +5,7 @@
   "main": "index.html",
   "scripts": {
     "build": "npx tailwindcss -i ./input.css -o ./output.css --minify",
+    "build-prod": "npx tailwindcss -i ./input.css -o ./output.css --minify",
     "dev": "npx tailwindcss -i ./input.css -o ./output.css --watch",
     "preview": "npx serve .",
     "clean": "rm -f output.css"
