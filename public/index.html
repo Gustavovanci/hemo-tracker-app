@@ -5,140 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Título e Metadados do PWA -->
-    <title>HemoFlow - Tracker Avançado</title>
-    <meta name="theme-color" content="#1e1b4b">
+    <title>HemoFlow - Sistema Avançado de Analytics Hemodinâmico</title>
+    <meta name="theme-color" content="#007AFF">
     <link rel="manifest" href="manifest.json">
     
-    <!-- Fonts -->
+    <!-- Fonts Premium -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@100;200;300;400;500;600;700;800;900&family=SF+Pro+Text:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- CSS -->
-    <link href="../output.css" rel="stylesheet">
+    <!-- CSS Premium -->
+    <link href="output.css" rel="stylesheet">
     
-    <!-- Meta tags para melhor SEO e compartilhamento -->
-    <meta name="description" content="Sistema avançado de tracking hemodinâmico com analytics preditivos e otimização de fluxo">
-    <meta name="keywords" content="hemodinâmica, tracking, healthcare, analytics, otimização">
-    <meta name="author" content="HemoFlow Team">
+    <!-- Meta tags para SEO -->
+    <meta name="description" content="Sistema premium de tracking hemodinâmico com analytics preditivos e design Apple-level">
+    <meta name="keywords" content="hemodinâmica, tracking, healthcare, analytics, premium, Apple design">
+    <meta name="author" content="HemoFlow Premium Team">
     
-    <!-- Open Graph para compartilhamento -->
-    <meta property="og:title" content="HemoFlow - Sistema de Tracking Hemodinâmico">
-    <meta property="og:description" content="Otimize o fluxo da sua hemodinâmica com analytics avançados">
+    <!-- Open Graph -->
+    <meta property="og:title" content="HemoFlow - Sistema Premium de Tracking Hemodinâmico">
+    <meta property="og:description" content="Interface premium inspirada na Apple para otimização de fluxo hemodinâmico">
     <meta property="og:type" content="website">
-    
-    <!-- Ícones para diferentes dispositivos -->
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
-<body class="bg-gradient-app min-h-screen">
+<body>
 
-    <div class="container mx-auto px-4 py-6 max-w-2xl">
+    <div class="container mx-auto px-6 py-8 max-w-6xl">
         
-        <!-- Cabeçalho Aprimorado -->
-        <header class="text-center mb-8 animate-fade-in-down">
-            <div class="flex items-center justify-center mb-4">
-                <div class="bg-glass-morphism rounded-full p-4 mr-4">
-                    <span class="text-4xl">🫀</span>
-                </div>
-                <div>
-                    <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-2 text-gradient">HemoFlow</h1>
-                    <p class="text-lg text-white/80 font-light">Sistema Avançado de Analytics Hemodinâmico</p>
-                </div>
+        <!-- Hero Header Premium -->
+        <header class="hero-header">
+            <div class="hero-logo">
+                <span class="text-4xl">🫀</span>
             </div>
+            <h1 class="hero-title">HemoFlow</h1>
+            <p class="hero-subtitle">Sistema Avançado de Analytics Hemodinâmico com Interface Premium</p>
             
-            <!-- Status do Sistema -->
-            <div class="glass-morphism rounded-xl p-3 mb-4">
-                <div class="flex items-center justify-between text-sm text-white/80">
-                    <span id="system-status" class="flex items-center">
-                        <span class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></span>
-                        Sistema Online
-                    </span>
-                    <span id="last-sync">Última sync: --</span>
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <div class="status-dot online" id="system-status-dot"></div>
+                    <span id="system-status" class="text-white font-medium">Sistema Online</span>
                 </div>
+                <span id="last-sync" class="text-white/70 text-sm">Última sync: --</span>
             </div>
         </header>
 
-        <!-- Scanner Section Melhorado -->
+        <!-- Scanner Section Premium -->
         <div class="glass-card">
-            <div class="text-center mb-6">
-                <h3 class="text-xl font-semibold text-white mb-2">📱 Scanner de Pulseira</h3>
-                <p class="text-white/70 text-sm">Escaneie o QR Code ou digite o ID do paciente</p>
-            </div>
-            
-            <!-- Camera Preview -->
-            <div id="reader" class="w-full rounded-xl overflow-hidden mb-4" style="display: none;">
-                <div id="camera-view"></div>
-            </div>
-            
-            <!-- Controles do Scanner -->
-            <div class="space-y-4">
-                <button id="start-scan-btn" class="scan-button">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="scanner-container">
+                <div class="scanner-icon">
+                    <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
                     </svg>
-                    Escanear Pulseira do Paciente
+                </div>
+                
+                <h3 class="text-2xl font-bold text-white mb-3">Scanner de Pulseira Inteligente</h3>
+                <p class="text-white/80 text-lg mb-8">Escaneie o QR Code ou digite o ID do paciente para iniciar o tracking</p>
+                
+                <!-- Camera Preview -->
+                <div id="reader" class="camera-preview mb-8" style="display: none;">
+                    <div id="camera-view"></div>
+                </div>
+                
+                <!-- Scanner Button -->
+                <button id="start-scan-btn" class="btn-scan mb-6">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
+                    </svg>
+                    Ativar Scanner de Pulseira
                 </button>
                 
-                <!-- Input manual como alternativa -->
-                <div class="flex gap-2">
+                <!-- Input Manual Premium -->
+                <div class="input-manual">
                     <input type="text" id="manual-patient-id" 
                            placeholder="Ou digite o ID do paciente..." 
-                           class="flex-1 px-4 py-3 rounded-xl bg-glass text-white placeholder-white/50 border border-glass-border focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <button id="manual-submit-btn" class="px-6 py-3 bg-accent-500 hover:bg-accent-600 rounded-xl text-white font-medium transition-colors">
-                        OK
+                           class="form-input">
+                    <button id="manual-submit-btn" class="btn-primary">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
+                        </svg>
+                        Confirmar
                     </button>
                 </div>
-            </div>
-            
-            <!-- Status do Scanner -->
-            <div id="scanner-status" class="text-center text-white/60 text-sm mt-4" style="display: none;">
-                <div class="loading inline-block mr-2"></div>
-                Inicializando câmera...
-            </div>
-            
-            <!-- Paciente Identificado -->
-            <div class="patient-info" id="patient-info" style="display: none;">
-                <h3 class="text-lg font-semibold text-white mb-3">📋 Paciente Identificado</h3>
-                <div class="patient-id bg-accent-500/10 border border-accent-500/30 rounded-xl p-4" id="patient-id"></div>
                 
-                <!-- Info adicional do paciente -->
-                <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
-                    <div class="glass-morphism-light rounded-lg p-3 text-center">
-                        <div class="text-white/60">Hora de Entrada</div>
-                        <div class="text-white font-semibold" id="entry-time">--:--</div>
-                    </div>
-                    <div class="glass-morphism-light rounded-lg p-3 text-center">
-                        <div class="text-white/60">Status</div>
-                        <div class="text-success-400 font-semibold">Em Atendimento</div>
-                    </div>
+                <!-- Status do Scanner -->
+                <div id="scanner-status" class="mt-6 text-center text-white/70" style="display: none;">
+                    <div class="loading-spinner inline-block mr-3"></div>
+                    Inicializando câmera traseira...
                 </div>
             </div>
         </div>
 
-        <!-- Timeline Section Aprimorada -->
+        <!-- Patient Info Premium -->
+        <div id="patient-info" class="patient-card" style="display: none;">
+            <h3 class="text-2xl font-bold text-white mb-4">👤 Paciente Identificado</h3>
+            <div class="patient-id" id="patient-id">AGUARDANDO...</div>
+            
+            <div class="patient-stats">
+                <div class="patient-stat">
+                    <div class="patient-stat-label">Hora de Entrada</div>
+                    <div class="patient-stat-value" id="entry-time">--:--</div>
+                </div>
+                <div class="patient-stat">
+                    <div class="patient-stat-label">Status Atual</div>
+                    <div class="patient-stat-value text-green-400">Em Atendimento</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Section Premium -->
         <div class="glass-card" id="timeline-section" style="display: none;">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-white">⏱️ Timeline do Procedimento</h2>
-                <div class="glass-morphism-light rounded-lg px-3 py-1 text-sm text-white/80">
-                    <span id="current-step">Etapa 1/9</span>
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-white">⏱️ Timeline do Procedimento</h2>
+                <div class="liquid-glass rounded-xl px-4 py-2">
+                    <span id="current-step" class="text-white font-semibold">Etapa 1/9</span>
                 </div>
             </div>
             
-            <!-- Progress Bar -->
-            <div class="mb-6">
-                <div class="w-full bg-glass rounded-full h-2">
-                    <div id="progress-bar" class="bg-gradient-to-r from-primary-500 to-secondary-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            <!-- Progress Bar Premium -->
+            <div class="timeline-progress">
+                <div class="timeline-progress-bar">
+                    <div id="progress-bar" class="timeline-progress-fill" style="width: 0%"></div>
                 </div>
-                <div class="text-center text-white/60 text-sm mt-2">
+                <div class="text-center text-white/80 text-lg mt-3">
                     <span id="progress-text">0% concluído</span>
                 </div>
             </div>
             
             <div class="timeline-container">
-                <div class="timeline-line"></div>
-                
                 <!-- Etapa 1 -->
                 <div class="timeline-step" data-step="1">
                     <div class="step-indicator pending" id="step1">1</div>
@@ -230,16 +223,16 @@
                 </div>
             </div>
 
-            <!-- Controles da Timeline -->
-            <div class="action-buttons">
-                <button class="action-button success" id="next-step-btn" disabled>
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- Controles Premium -->
+            <div class="flex gap-4 mt-8">
+                <button class="btn-success flex-1" id="next-step-btn" disabled>
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
                     </svg>
                     Próxima Etapa
                 </button>
-                <button class="action-button danger" id="reset-btn">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <button class="btn-danger" id="reset-btn">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" />
                     </svg>
@@ -248,105 +241,79 @@
             </div>
         </div>
 
-        <!-- Analytics em Tempo Real (NOVO) -->
+        <!-- Analytics Premium -->
         <div class="glass-card" id="analytics-section" style="display: none;">
-            <h2 class="text-xl font-semibold text-white mb-6">🤖 Analytics Preditivos</h2>
+            <h2 class="text-3xl font-bold text-white mb-8">🤖 Analytics Preditivos</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="analytics-grid">
                 <!-- Previsão de Tempo -->
-                <div class="glass-morphism-light rounded-xl p-4">
-                    <div class="flex items-center mb-2">
-                        <span class="text-2xl mr-2">⏰</span>
-                        <div>
-                            <h4 class="text-white font-semibold">Previsão de Conclusão</h4>
-                            <p class="text-white/60 text-sm">Baseado em histórico</p>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-bold text-accent-400" id="predicted-completion">--:--</div>
+                <div class="analytics-card">
+                    <div class="analytics-icon">⏰</div>
+                    <h4 class="analytics-title">Previsão de Conclusão</h4>
+                    <p class="analytics-subtitle">Baseado em machine learning</p>
+                    <div class="analytics-value" id="predicted-completion">--:--</div>
                 </div>
                 
                 <!-- Status de Performance -->
-                <div class="glass-morphism-light rounded-xl p-4">
-                    <div class="flex items-center mb-2">
-                        <span class="text-2xl mr-2">📊</span>
-                        <div>
-                            <h4 class="text-white font-semibold">Performance</h4>
-                            <p class="text-white/60 text-sm">vs. média histórica</p>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-bold" id="performance-status">
-                        <span class="text-success-400">✓ No prazo</span>
+                <div class="analytics-card">
+                    <div class="analytics-icon">📊</div>
+                    <h4 class="analytics-title">Performance em Tempo Real</h4>
+                    <p class="analytics-subtitle">vs. média histórica</p>
+                    <div class="analytics-value" id="performance-status">
+                        <span class="text-green-400">✓ Excelente</span>
                     </div>
                 </div>
             </div>
             
             <!-- Alertas Inteligentes -->
-            <div id="smart-alerts" class="space-y-2">
+            <div class="alerts-container" id="smart-alerts">
                 <!-- Os alertas serão inseridos dinamicamente aqui -->
             </div>
         </div>
 
-        <!-- Stats Dashboard Melhorado -->
+        <!-- Stats Dashboard Premium -->
         <div class="glass-card" id="stats-section" style="display: none;">
-            <h2 class="text-xl font-semibold text-white mb-6">📊 Métricas do Procedimento</h2>
+            <h2 class="text-3xl font-bold text-white mb-8">📊 Métricas Avançadas</h2>
             
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="flex items-center mb-2">
-                        <span class="text-xl mr-2">⏱️</span>
-                        <span class="text-white/80 text-sm">Tempo Total</span>
-                    </div>
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-label">Tempo Total</div>
                     <div class="stat-value" id="total-time">--</div>
-                    <div class="text-xs text-white/60" id="total-time-comparison">vs. média: --</div>
+                    <div class="stat-comparison" id="total-time-comparison">vs. média: --</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="flex items-center mb-2">
-                        <span class="text-xl mr-2">🔬</span>
-                        <span class="text-white/80 text-sm">Procedimento</span>
-                    </div>
+                    <div class="stat-icon">🔬</div>
+                    <div class="stat-label">Procedimento</div>
                     <div class="stat-value" id="procedure-time">--</div>
-                    <div class="text-xs text-white/60" id="procedure-time-comparison">vs. média: --</div>
+                    <div class="stat-comparison" id="procedure-time-comparison">vs. média: --</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="flex items-center mb-2">
-                        <span class="text-xl mr-2">⚙️</span>
-                        <span class="text-white/80 text-sm">Preparação</span>
-                    </div>
+                    <div class="stat-icon">⚙️</div>
+                    <div class="stat-label">Preparação</div>
                     <div class="stat-value" id="setup-time">--</div>
-                    <div class="text-xs text-white/60" id="setup-time-comparison">vs. média: --</div>
+                    <div class="stat-comparison" id="setup-time-comparison">vs. média: --</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="flex items-center mb-2">
-                        <span class="text-xl mr-2">🧽</span>
-                        <span class="text-white/80 text-sm">Limpeza</span>
-                    </div>
+                    <div class="stat-icon">🧽</div>
+                    <div class="stat-label">Limpeza</div>
                     <div class="stat-value" id="cleaning-time">--</div>
-                    <div class="text-xs text-white/60" id="cleaning-time-comparison">vs. média: --</div>
-                </div>
-            </div>
-            
-            <!-- Gráfico de Performance (placeholder) -->
-            <div class="mt-6">
-                <h3 class="text-white font-semibold mb-3">📈 Tendência de Performance</h3>
-                <div class="glass-morphism-light rounded-xl p-4 text-center text-white/60">
-                    <div class="h-32 flex items-center justify-center">
-                        <span>Gráfico de tendência será exibido aqui</span>
-                    </div>
+                    <div class="stat-comparison" id="cleaning-time-comparison">vs. média: --</div>
                 </div>
             </div>
         </div>
 
-        <!-- Final Actions Melhorado -->
+        <!-- Final Actions Premium -->
         <div class="glass-card" id="final-section" style="display: none;">
-            <h2 class="text-xl font-semibold text-white mb-6">✅ Finalizar Atendimento</h2>
+            <h2 class="text-3xl font-bold text-white mb-8">✅ Finalizar Atendimento</h2>
             
-            <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Seleção de Sala -->
-                <div>
-                    <label for="sala-select" class="form-label">🏥 Sala:</label>
+                <div class="form-group">
+                    <label for="sala-select" class="form-label">🏥 Sala de Procedimento</label>
                     <select id="sala-select" class="form-select">
                         <option value="">Selecione a sala...</option>
                         <option value="Sala 1">Sala 1 - Hemodinâmica Principal</option>
@@ -358,8 +325,8 @@
                 </div>
                 
                 <!-- Destino do Paciente -->
-                <div>
-                    <label for="leito-select" class="form-label">🏃‍♂️ Destino do Paciente:</label>
+                <div class="form-group">
+                    <label for="leito-select" class="form-label">🏃‍♂️ Destino do Paciente</label>
                     <select id="leito-select" class="form-select">
                         <option value="">Selecione o destino...</option>
                         <option value="Recuperação 1">Recuperação 1</option>
@@ -371,49 +338,48 @@
                         <option value="Alta Hospitalar">Alta Hospitalar</option>
                     </select>
                 </div>
-                
-                <!-- Observações Opcionais -->
-                <div>
-                    <label for="observations" class="form-label">📝 Observações (opcional):</label>
-                    <textarea id="observations" 
-                              placeholder="Observações sobre o procedimento..."
-                              class="w-full px-4 py-3 rounded-xl bg-glass text-white placeholder-white/50 border border-glass-border focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                              rows="3"></textarea>
+            </div>
+            
+            <!-- Observações -->
+            <div class="form-group">
+                <label for="observations" class="form-label">📝 Observações Clínicas</label>
+                <textarea id="observations" 
+                          placeholder="Observações sobre o procedimento, complicações, ou notas especiais..."
+                          class="form-textarea"></textarea>
+            </div>
+            
+            <!-- Resumo Final Premium -->
+            <div class="liquid-glass rounded-2xl p-6 mb-8">
+                <h3 class="text-xl font-bold text-white mb-4">📋 Resumo do Atendimento</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex justify-between">
+                        <span class="text-white/70">Paciente:</span>
+                        <span class="text-white font-semibold" id="final-patient-id">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-white/70">Duração Total:</span>
+                        <span class="text-white font-semibold" id="final-total-time">--</span>
+                    </div>
                 </div>
             </div>
             
-            <!-- Resumo Final -->
-            <div class="mt-6 glass-morphism-light rounded-xl p-4">
-                <h3 class="text-white font-semibold mb-3">📋 Resumo Final</h3>
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span class="text-white/60">Paciente:</span>
-                        <span class="text-white font-medium ml-2" id="final-patient-id">--</span>
-                    </div>
-                    <div>
-                        <span class="text-white/60">Duração Total:</span>
-                        <span class="text-white font-medium ml-2" id="final-total-time">--</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Botão de Salvar -->
-            <button class="action-button primary w-full mt-6" id="checkout-btn" disabled>
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- Botão de Salvar Premium -->
+            <button class="btn-primary w-full" id="checkout-btn" disabled>
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17L4 12" />
                 </svg>
                 Salvar no Google Sheets & Gerar Relatório
             </button>
             
             <!-- Status de Salvamento -->
-            <div id="save-status" class="text-center text-white/60 text-sm mt-4" style="display: none;">
-                <div class="loading inline-block mr-2"></div>
-                Salvando dados...
+            <div id="save-status" class="text-center text-white/70 text-lg mt-6" style="display: none;">
+                <div class="loading-spinner inline-block mr-3"></div>
+                Salvando dados no sistema...
             </div>
         </div>
 
-        <!-- Notificações Toast -->
-        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container">
             <!-- Notificações serão inseridas aqui dinamicamente -->
         </div>
     </div>
@@ -422,7 +388,7 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="script.js"></script>
     
-    <!-- Service Worker Registration -->
+    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
