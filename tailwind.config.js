@@ -1,15 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./*.{html,js}",
+    "./public/*.{html,js}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['SF Mono', 'Fira Code', 'monospace'],
+        // Usando fontes do sistema para um look mais nativo, como sugerido pela Apple
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['SF Mono', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       colors: {
+        // Nova paleta "Foco Clínico"
         primary: 'var(--primary)',
         'primary-dark': 'var(--primary-dark)',
         secondary: 'var(--secondary)',
@@ -18,16 +20,20 @@ module.exports = {
         danger: 'var(--danger)',
         'dark-bg': 'var(--dark-bg)',
         'dark-card': 'var(--dark-card)',
+        'glass-border': 'var(--glass-border)',
       },
       borderRadius: {
         '2xl': '1rem',
-        '3xl': '1.5rem',
+        '3xl': '1.5rem', // Bordas mais suaves
+        '4xl': '2rem',
       },
       boxShadow: {
-        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'soft': 'var(--shadow-soft)',
+        'medium': 'var(--shadow-medium)',
+        'primary': 'var(--shadow-primary)',
       },
       animation: {
-        'slide-up': 'slideUp 0.7s ease-out',
+        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)', // Animação mais fluida
         'spin': 'spin 1s linear infinite',
       },
       keyframes: {

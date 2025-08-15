@@ -2,56 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@100;200;300;400;500;600;700;800;900&family=SF+Pro+Text:wght@300;400;500;600;700&display=swap');
-
 @layer base {
   :root {
-    /* Revolutionary Color System */
-    --primary: #007AFF;
-    --primary-light: #5AC8FA;
-    --primary-dark: #0051D5;
-    --secondary: #5856D6;
-    --accent: #FF2D92;
+    /* Paleta "Foco Clínico" */
+    --primary: #0A84FF;
+    --primary-dark: #007AFF;
+    --secondary: #5E5CE6;
+    --accent: #FF9F0A;
     --success: #30D158;
-    --warning: #FF9F0A;
     --danger: #FF453A;
     
-    /* High Contrast System */
-    --gray-50: #FAFAFA;
-    --gray-100: #F5F5F5;
-    --gray-200: #EEEEEE;
-    --gray-300: #E0E0E0;
-    --gray-400: #BDBDBD;
-    --gray-500: #9E9E9E;
-    --gray-600: #757575;
-    --gray-700: #616161;
-    --gray-800: #424242;
-    --gray-900: #212121;
-    
-    /* Glass Effects */
-    --glass-white: rgba(255, 255, 255, 0.15);
-    --glass-dark: rgba(0, 0, 0, 0.1);
-    --glass-primary: rgba(0, 122, 255, 0.15);
-    --glass-success: rgba(48, 209, 88, 0.15);
-    
-    /* Advanced Gradients */
-    --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    --gradient-primary: linear-gradient(135deg, #007AFF 0%, #5AC8FA 100%);
-    --gradient-success: linear-gradient(135deg, #30D158 0%, #32D74B 100%);
-    --gradient-danger: linear-gradient(135deg, #FF453A 0%, #FF6B6B 100%);
-    --gradient-accent: linear-gradient(135deg, #FF2D92 0%, #FF6B6B 100%);
-    
-    /* Shadows */
-    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.15);
-    --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.2);
-    --shadow-primary: 0 20px 40px rgba(0, 122, 255, 0.3);
-    --shadow-success: 0 20px 40px rgba(48, 209, 88, 0.3);
-    --shadow-danger: 0 20px 40px rgba(255, 69, 58, 0.3);
-    
-    /* Typography */
-    --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-text: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Tons de cinza inspirados no iOS Dark Mode */
+    --dark-bg: #000000;       /* Preto puro para profundidade máxima */
+    --dark-card: #1C1C1E;    /* Cinza quase preto para os cards */
+    --dark-input: #2C2C2E;   /* Cinza para inputs */
+
+    /* Efeitos de Vidro (Glass Effects) */
+    --glass-material: rgba(28, 28, 30, 0.7); /* Material translúcido */
+    --glass-border: rgba(255, 255, 255, 0.1);
+
+    /* Sombras Sutis */
+    --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.2);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.25);
+    --shadow-primary: 0 10px 25px rgba(10, 132, 255, 0.25);
   }
 
   * {
@@ -62,576 +35,111 @@
 
   html {
     scroll-behavior: smooth;
-    font-size: 16px;
   }
 
   body {
-    font-family: var(--font-text);
-    background: var(--gradient-hero);
-    background-size: 400% 400%;
-    animation: gradientFlow 20s ease infinite;
+    @apply antialiased text-white/90;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--dark-bg);
     min-height: 100vh;
     overflow-x: hidden;
-    color: white;
-    line-height: 1.6;
-  }
-
-  /* Background Effects */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-      radial-gradient(circle at 20% 50%, rgba(0, 122, 255, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(88, 86, 214, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, rgba(255, 45, 146, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
   }
 }
 
 @layer components {
-  /* ===== STEP-BY-STEP CONTAINER ===== */
-  .step-container {
-    @apply min-h-screen flex items-center justify-center px-6;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+  /* ===== Container Principal ===== */
+  .app-container {
+    @apply mx-auto px-4 py-8 max-w-md;
   }
 
-  .step-card {
-    @apply w-full max-w-2xl;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 2rem;
-    padding: 3rem;
-    box-shadow: 
-      var(--shadow-strong),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: stepSlideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+  /* ===== Card Principal "Liquid Glass" ===== */
+  .liquid-card {
+    @apply w-full p-6 md:p-8 rounded-4xl;
+    background: var(--glass-material);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-medium);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .step-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: left 0.8s ease;
+  /* ===== Cabeçalhos de Seção ===== */
+  .section-header {
+    @apply text-center mb-6;
+  }
+  .section-title {
+    @apply text-3xl font-bold text-white;
+  }
+  .section-subtitle {
+    @apply text-base text-white/60 mt-1;
   }
 
-  .step-card:hover::before {
-    left: 100%;
+  /* ===== Botões com Feedback Tátil ===== */
+  .action-button {
+    @apply w-full px-6 py-4 rounded-xl text-lg font-semibold cursor-pointer
+           transition-all duration-200 flex items-center justify-center gap-3
+           border-none shadow-soft transform active:scale-[0.97];
   }
-
-  /* ===== STEP HEADER ===== */
-  .step-header {
-    @apply text-center mb-8;
-  }
-
-  .step-number {
-    @apply inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 text-2xl font-bold;
-    background: var(--gradient-primary);
+  .action-button.primary {
+    background-color: var(--primary);
     color: white;
     box-shadow: var(--shadow-primary);
-    animation: stepNumberPulse 2s ease-in-out infinite;
+  }
+  .action-button.primary:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+  }
+  .action-button.secondary {
+    background-color: var(--dark-input);
+    color: white;
+  }
+  .action-button:disabled {
+    @apply bg-white/10 text-white/40 cursor-not-allowed shadow-none scale-100;
   }
 
-  .step-title {
-    @apply text-4xl md:text-5xl font-black mb-4;
-    font-family: var(--font-display);
-    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.02em;
+  /* ===== Inputs Integrados ===== */
+  .form-input, .form-select {
+    @apply w-full px-4 py-3 rounded-lg text-white text-base
+           transition-all duration-200 border border-transparent;
+    background-color: var(--dark-input);
   }
-
-  .step-subtitle {
-    @apply text-xl text-white/80;
-    font-family: var(--font-text);
+  .form-input:focus, .form-select:focus {
+    @apply outline-none ring-2 ring-primary/50 border-primary;
+    background-color: #3A3A3C;
   }
-
-  /* ===== REVOLUTIONARY BUTTONS ===== */
-  .btn-revolutionary {
-    @apply inline-flex items-center justify-center gap-4 px-12 py-6 text-xl font-bold text-white rounded-2xl transition-all duration-300 relative overflow-hidden w-full;
-    min-height: 80px;
-    font-family: var(--font-display);
-    letter-spacing: -0.01em;
-    transform-style: preserve-3d;
-    cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+  .form-input::placeholder {
+    @apply text-white/40;
   }
-
-  .btn-primary {
-    background: var(--gradient-primary);
-    box-shadow: var(--shadow-primary);
+  
+  /* ===== Timeline ===== */
+  .timeline-step {
+    @apply flex items-center transition-opacity duration-300;
   }
-
-  .btn-success {
-    background: var(--gradient-success);
-    box-shadow: var(--shadow-success);
+  .step-indicator {
+    @apply w-10 h-10 rounded-full flex items-center justify-center font-bold text-base mr-4
+           transition-all duration-300 border;
   }
-
-  .btn-danger {
-    background: var(--gradient-danger);
-    box-shadow: var(--shadow-danger);
+  .step-indicator.pending {
+    background-color: var(--dark-input);
+    border-color: var(--glass-border);
+    color: white/50;
   }
-
-  .btn-revolutionary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.6s ease;
+  .step-indicator.active {
+    background-color: var(--primary);
+    border-color: var(--primary-dark);
+    color: white;
+    transform: scale(1.1);
   }
-
-  .btn-revolutionary:hover::before {
-    left: 100%;
+  .step-indicator.completed {
+    background-color: var(--success);
+    border-color: var(--success);
+    color: white;
   }
+  .step-title { @apply text-base font-semibold text-white; }
+  .step-time { @apply text-xs text-white/60 font-mono; }
 
-  .btn-revolutionary:hover {
-    transform: translateY(-6px) scale(1.05);
-    box-shadow: 
-      0 30px 60px rgba(0, 0, 0, 0.3),
-      var(--shadow-primary);
-  }
-
-  .btn-revolutionary:active {
-    transform: translateY(-3px) scale(1.02);
-  }
-
-  .btn-revolutionary:disabled {
-    @apply opacity-50 cursor-not-allowed;
-    transform: none !important;
-  }
-
-  /* ===== SCANNER INTERFACE ===== */
-  .scanner-interface {
-    @apply text-center;
-  }
-
-  .scanner-icon {
-    @apply inline-flex items-center justify-center w-32 h-32 rounded-3xl mb-8 mx-auto;
-    background: var(--glass-primary);
-    backdrop-filter: blur(20px);
-    border: 3px solid rgba(0, 122, 255, 0.3);
-    animation: scannerPulse 2s ease-in-out infinite;
-  }
-
-  .camera-preview {
-    @apply rounded-3xl overflow-hidden mb-8 mx-auto;
-    max-width: 400px;
-    border: 4px solid rgba(0, 122, 255, 0.4);
-    box-shadow: var(--shadow-medium);
-  }
-
-  /* ===== INPUT SYSTEM ===== */
-  .input-group {
-    @apply mb-8;
-  }
-
-  .input-label {
-    @apply block text-white font-bold mb-4 text-lg text-center;
-    font-family: var(--font-display);
-  }
-
-  .input-field {
-    @apply w-full px-8 py-6 text-2xl text-center font-bold rounded-2xl transition-all duration-300;
-    min-height: 80px;
-    background: rgba(255, 255, 255, 0.95); /* FUNDO BRANCO PARA CONTRASTE */
-    color: #1a1a1a; /* TEXTO ESCURO PARA VISIBILIDADE */
-    border: 3px solid rgba(0, 122, 255, 0.3);
-    box-shadow: var(--shadow-medium);
-    font-family: var(--font-display);
-    letter-spacing: 0.1em;
-  }
-
-  .input-field:focus {
-    @apply outline-none;
-    background: rgba(255, 255, 255, 1); /* FUNDO 100% BRANCO NO FOCUS */
-    color: #000000; /* TEXTO PRETO */
-    border-color: var(--primary);
-    box-shadow: 
-      0 0 0 4px rgba(0, 122, 255, 0.2),
-      var(--shadow-strong);
-    transform: scale(1.02);
-  }
-
-  .input-field::placeholder {
-    color: #666666; /* PLACEHOLDER VISÍVEL */
-    font-weight: 500;
-  }
-
-  .input-buttons {
-    @apply flex gap-4 mt-6;
-  }
-
-  /* ===== PATIENT CARD ===== */
-  .patient-showcase {
-    @apply text-center p-8;
-    background: var(--glass-success);
-    border: 3px solid rgba(48, 209, 88, 0.3);
-    border-radius: 2rem;
-    animation: patientReveal 0.8s ease-out;
-  }
-
-  .patient-id-display {
-    @apply text-5xl md:text-6xl font-black p-8 rounded-2xl mb-6;
-    font-family: var(--font-display);
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--primary);
-    border: 3px solid rgba(0, 122, 255, 0.3);
-    letter-spacing: 0.1em;
-    text-shadow: none;
-    box-shadow: var(--shadow-medium);
-    animation: patientIdPulse 3s ease-in-out infinite;
-  }
-
-  .patient-stats {
-    @apply grid grid-cols-2 gap-4;
-  }
-
-  .patient-stat {
-    @apply p-4 rounded-xl text-center;
-    background: var(--glass-white);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .patient-stat-label {
-    @apply text-sm text-white/80 mb-2;
-  }
-
-  .patient-stat-value {
-    @apply text-xl font-bold text-white;
-    font-family: var(--font-display);
-  }
-
-  /* ===== TIMELINE STEP ===== */
-  .timeline-step-card {
-    @apply text-center p-8;
-  }
-
-  .timeline-step-icon {
-    @apply inline-flex items-center justify-center w-24 h-24 rounded-3xl mb-6 text-4xl;
-    background: var(--glass-primary);
-    border: 3px solid rgba(0, 122, 255, 0.3);
-    animation: timelineIconFloat 3s ease-in-out infinite;
-  }
-
-  .timeline-step-title {
-    @apply text-3xl font-bold mb-4;
-    font-family: var(--font-display);
-  }
-
-  .timeline-step-description {
-    @apply text-lg text-white/80 mb-8;
-  }
-
-  .timeline-step-time {
-    @apply text-2xl font-bold mb-6 p-4 rounded-xl;
-    font-family: 'SF Mono', Monaco, monospace;
-    background: var(--glass-white);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  /* ===== FINAL FORM ===== */
-  .final-form {
-    @apply space-y-6;
-  }
-
-  .form-section {
-    @apply p-6 rounded-2xl;
-    background: var(--glass-white);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .form-title {
-    @apply text-xl font-bold mb-4 text-center;
-    font-family: var(--font-display);
-  }
-
-  .form-select {
-    @apply w-full px-6 py-4 text-lg rounded-xl transition-all duration-300;
-    background: rgba(255, 255, 255, 0.95);
-    color: #1a1a1a;
-    border: 2px solid rgba(0, 122, 255, 0.3);
-    min-height: 60px;
-  }
-
-  .form-select:focus {
-    @apply outline-none;
-    background: rgba(255, 255, 255, 1);
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
-  }
-
-  .form-textarea {
-    @apply w-full px-6 py-4 text-lg rounded-xl transition-all duration-300 resize-none;
-    background: rgba(255, 255, 255, 0.95);
-    color: #1a1a1a;
-    border: 2px solid rgba(0, 122, 255, 0.3);
-    min-height: 120px;
-  }
-
-  .form-textarea:focus {
-    @apply outline-none;
-    background: rgba(255, 255, 255, 1);
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
-  }
-
-  .form-textarea::placeholder {
-    color: #666666;
-  }
-
-  /* ===== SUMMARY CARD ===== */
-  .summary-card {
-    @apply p-6 rounded-2xl mb-6;
-    background: var(--glass-primary);
-    border: 2px solid rgba(0, 122, 255, 0.3);
-  }
-
-  .summary-title {
-    @apply text-xl font-bold mb-4 text-center;
-    font-family: var(--font-display);
-  }
-
-  .summary-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
-  }
-
-  .summary-item {
-    @apply flex justify-between p-3 rounded-lg;
-    background: var(--glass-white);
-  }
-
-  .summary-label {
-    @apply text-white/80;
-  }
-
-  .summary-value {
-    @apply font-bold text-white;
-  }
-
-  /* ===== PROGRESS INDICATOR ===== */
-  .progress-indicator {
-    @apply fixed top-6 right-6 z-50;
-  }
-
-  .progress-circle {
-    @apply w-16 h-16 rounded-full flex items-center justify-center text-white font-bold;
-    background: var(--glass-primary);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(0, 122, 255, 0.3);
-    box-shadow: var(--shadow-medium);
-  }
-
-  /* ===== STATUS MESSAGES ===== */
-  .status-message {
-    @apply text-center p-6 rounded-2xl mb-6;
-    background: var(--glass-white);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .status-icon {
-    @apply text-4xl mb-4;
-  }
-
-  .status-text {
-    @apply text-lg text-white/90;
-  }
-
-  /* ===== LOADING STATES ===== */
-  .loading-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-  }
-
+  /* ===== Utilitários ===== */
   .loading-spinner {
-    @apply w-16 h-16 border-4 border-white/20 rounded-full;
-    border-top-color: white;
-    animation: spin 1s linear infinite;
+    @apply inline-block w-5 h-5 border-2 border-white/20 rounded-full border-t-white;
+    animation: spin 0.8s linear infinite;
   }
-
-  /* ===== TOAST NOTIFICATIONS ===== */
-  .toast-container {
-    @apply fixed top-6 left-1/2 transform -translate-x-1/2 z-50 space-y-3;
-  }
-
-  .toast {
-    @apply flex items-center space-x-3 px-6 py-4 rounded-2xl text-white font-semibold min-w-80 max-w-md;
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    animation: toastSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .toast.success {
-    background: var(--gradient-success);
-    border-color: rgba(48, 209, 88, 0.3);
-  }
-
-  .toast.warning {
-    background: var(--gradient-warning);
-    border-color: rgba(255, 159, 10, 0.3);
-  }
-
-  .toast.error {
-    background: var(--gradient-danger);
-    border-color: rgba(255, 69, 58, 0.3);
-  }
-
-  .toast.info {
-    background: var(--gradient-primary);
-    border-color: rgba(0, 122, 255, 0.3);
-  }
-
-  .toast-icon {
-    @apply text-2xl;
-  }
-
-  .toast-content {
-    @apply flex-1;
-  }
-
-  .toast-close {
-    @apply text-white/70 hover:text-white transition-colors cursor-pointer text-xl;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 768px) {
-    .step-card {
-      padding: 2rem;
-      margin: 1rem;
-    }
-    
-    .step-title {
-      @apply text-3xl;
-    }
-    
-    .btn-revolutionary {
-      @apply px-8 py-5 text-lg;
-      min-height: 70px;
-    }
-    
-    .input-field {
-      @apply px-6 py-4 text-xl;
-      min-height: 70px;
-    }
-
-    .patient-id-display {
-      @apply text-4xl p-6;
-    }
-
-    .scanner-icon {
-      @apply w-24 h-24;
-    }
-
-    .timeline-step-icon {
-      @apply w-20 h-20 text-3xl;
-    }
-
-    .toast-container {
-      @apply left-6 right-6 transform-none;
-    }
-
-    .toast {
-      @apply min-w-full;
-    }
-  }
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes gradientFlow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-@keyframes stepSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(60px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes stepNumberPulse {
-  0%, 100% {
-    box-shadow: var(--shadow-primary);
-  }
-  50% {
-    box-shadow: 0 25px 50px rgba(0, 122, 255, 0.5);
-  }
-}
-
-@keyframes scannerPulse {
-  0%, 100% {
-    border-color: rgba(0, 122, 255, 0.3);
-    box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
-  }
-  50% {
-    border-color: rgba(0, 122, 255, 0.6);
-    box-shadow: 0 0 40px rgba(0, 122, 255, 0.6);
-  }
-}
-
-@keyframes patientReveal {
-  from {
-    opacity: 0;
-    transform: scale(0.8) rotateY(-20deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotateY(0deg);
-  }
-}
-
-@keyframes patientIdPulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: var(--shadow-medium);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-strong);
-  }
-}
-
-@keyframes timelineIconFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes toastSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-60px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
