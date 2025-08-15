@@ -15,8 +15,18 @@
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
+
+    <!-- Indicador de Progresso Fixo -->
+    <div class="progress-indicator">
+        <div class="progress-circle">
+            <span id="current-step-indicator">1</span>
+        </div>
+    </div>
+
+    <!-- Container para os Steps -->
     <main class="app-container">
         
+        <!-- ETAPA 0: BEM-VINDO -->
         <section id="step-welcome" class="step-container" style="display: none;">
             <div class="step-card">
                 <div class="step-header">
@@ -25,9 +35,11 @@
                     <p class="step-subtitle">Interface Revolucionária v4.0</p>
                 </div>
                 <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Atendimento</button>
+                <button id="view-dashboard-btn-welcome" class="btn-revolutionary secondary mt-4">Ver Dashboard</button>
             </div>
         </section>
         
+        <!-- ETAPA 1: SCANNER -->
         <section id="step-scanner" class="step-container" style="display: none;">
             <div class="step-card">
                 <div class="step-header">
@@ -45,6 +57,7 @@
             </div>
         </section>
 
+        <!-- ETAPA 2: PACIENTE -->
         <section id="step-patient" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <h2 class="step-title">Paciente Confirmado</h2>
@@ -53,6 +66,9 @@
             </div>
         </section>
         
+        <!-- TIMELINE (Gerado dinamicamente) -->
+
+        <!-- ETAPA FINAL -->
         <section id="step-final" class="step-container" style="display: none;">
             <div class="step-card">
                 <h2 class="step-title text-center">Finalização</h2>
@@ -65,12 +81,60 @@
             </div>
         </section>
 
+        <!-- SUCESSO -->
         <section id="step-success" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <div class="text-8xl mb-4">✅</div>
                  <h2 class="step-title">Salvo com Sucesso!</h2>
                  <p class="step-subtitle">O atendimento foi registrado.</p>
                  <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Iniciar Novo Atendimento</button>
+                 <button id="view-dashboard-btn-success" class="btn-revolutionary secondary mt-4">Ver Dashboard</button>
+            </div>
+        </section>
+
+        <!-- ETAPA DE DASHBOARD -->
+        <section id="step-dashboard" class="step-container" style="display: none;">
+            <div class="step-card">
+                <div class="step-header">
+                    <h2 class="step-title">Dashboard de Análise</h2>
+                    <p class="step-subtitle">Métricas e KPIs dos atendimentos.</p>
+                </div>
+                
+                <div id="dashboard-content">
+                    <!-- KPIs Principais -->
+                    <div class="grid grid-cols-2 gap-4 mb-6 text-center">
+                        <div class="p-4 bg-white/10 rounded-xl">
+                            <div class="text-4xl font-bold text-accent" id="kpi-total-hoje">0</div>
+                            <div class="text-sm text-white/60">Atendimentos Hoje</div>
+                        </div>
+                        <div class="p-4 bg-white/10 rounded-xl">
+                            <div class="text-4xl font-bold" id="kpi-tempo-medio">0<span class="text-xl"> min</span></div>
+                            <div class="text-sm text-white/60">Tempo Médio Total</div>
+                        </div>
+                    </div>
+
+                    <!-- Análise de Etapas -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold mb-2 text-center">Análise de Gargalos</h3>
+                        <div class="p-4 bg-white/10 rounded-xl text-center">
+                            <div class="text-sm text-white/60">Etapa Mais Lenta (Média)</div>
+                            <div class="text-2xl font-bold text-danger" id="kpi-gargalo">--</div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-center">Tempo Médio por Etapa</h3>
+                        <canvas id="etapasChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="dashboard-loading" class="text-center py-10" style="display: none;">
+                    <div class="loading-spinner inline-block"></div>
+                    <p class="mt-4 text-white/70">Carregando dados da planilha...</p>
+                </div>
+
+                <button id="back-to-welcome-btn" class="btn-revolutionary btn-primary mt-8">Voltar ao Início</button>
             </div>
         </section>
 
@@ -79,6 +143,7 @@
     <div id="toast-container" class="toast-container"></div>
     <div id="loading-overlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="script.js"></script>
 </body>
