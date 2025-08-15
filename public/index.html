@@ -3,97 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>HemoFlow v5</title>
-    <meta name="theme-color" content="#000000">
+    <title>HemoFlow v4 - Revolutionary</title>
+    <meta name="theme-color" content="#1a1a2e">
     <link rel="manifest" href="manifest.json">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    
     <link href="output.css" rel="stylesheet">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
-<body class="bg-dark-bg">
-
+<body>
     <main class="app-container">
-
-        <section id="step-welcome" class="liquid-card min-h-[400px] flex-col justify-center items-center" style="display: none;">
-            <div class="section-header">
-                <h1 class="text-5xl font-bold">HemoFlow</h1>
-                <p class="section-subtitle mt-2">Pronto para iniciar um novo atendimento?</p>
+        
+        <section id="step-welcome" class="step-container" style="display: none;">
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">🫀</div>
+                    <h1 class="step-title">HemoFlow</h1>
+                    <p class="step-subtitle">Interface Revolucionária v4.0</p>
+                </div>
+                <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Atendimento</button>
             </div>
-            <button id="start-btn" class="action-button primary mt-8">Iniciar</button>
         </section>
-
-        <section id="step-scanner" class="liquid-card" style="display: none;">
-            <div class="section-header">
-                <h2 class="section-title">Identificação</h2>
-                <p class="section-subtitle">Aponte para o QR code ou digite o ID.</p>
-            </div>
-            <div id="reader" class="w-full max-w-xs mx-auto rounded-2xl overflow-hidden my-6 border border-glass-border" style="display: none;"></div>
-            <div id="scanner-status" class="text-center text-sm text-white/60 my-4" style="display: none;"></div>
-            <div class="space-y-3">
-                <button id="scan-btn" class="action-button secondary">Escanear Pulseira</button>
-                <div class="flex gap-3">
-                    <input type="text" id="manual-patient-id" placeholder="ID do Paciente" class="form-input flex-1 text-center">
-                    <button id="manual-submit-btn" class="action-button primary px-6">OK</button>
+        
+        <section id="step-scanner" class="step-container" style="display: none;">
+            <div class="step-card">
+                <div class="step-header">
+                    <h2 class="step-title">Identificação</h2>
+                    <p class="step-subtitle">Escaneie ou insira o ID.</p>
+                </div>
+                <div id="reader" class="camera-preview" style="display: none;"></div>
+                <div class="input-buttons mt-4">
+                    <button id="scan-btn" class="btn-revolutionary btn-primary flex-1">Ativar Scanner</button>
+                </div>
+                <div class="input-group mt-6">
+                    <input type="text" id="patient-id-input" placeholder="OU DIGITE O ID" class="input-field">
+                    <button id="manual-submit-btn" class="btn-revolutionary btn-success mt-4">Confirmar ID</button>
                 </div>
             </div>
         </section>
 
-        <section id="step-patient" class="liquid-card text-center" style="display: none;">
-            <div class="section-header">
-                <h2 class="section-title">Paciente Identificado</h2>
-                <p id="patient-id-display" class="text-5xl font-bold text-accent mt-4"></p>
+        <section id="step-patient" class="step-container" style="display: none;">
+            <div class="step-card text-center">
+                 <h2 class="step-title">Paciente Confirmado</h2>
+                 <p id="patient-id-display" class="text-5xl font-black text-amber-300 my-4">--</p>
+                 <button id="start-timeline-btn" class="btn-revolutionary btn-primary mt-6">Iniciar Timeline</button>
             </div>
-            <button id="start-timeline-btn" class="action-button primary mt-6">Iniciar Timeline</button>
         </section>
-
-        <section id="step-timeline" class="liquid-card" style="display: none;">
-            <div class="section-header">
-                <h2 id="timeline-title" class="section-title">Timeline</h2>
-                <p id="timeline-subtitle" class="section-subtitle">Marque o tempo para a etapa atual.</p>
-            </div>
-            <div id="timeline-content" class="text-center my-8">
+        
+        <section id="step-final" class="step-container" style="display: none;">
+            <div class="step-card">
+                <h2 class="step-title text-center">Finalização</h2>
+                <div class="space-y-4 mt-6">
+                    <select id="sala-select" class="form-select"><option value="">Selecione a sala...</option><option value="Sala 1">Sala 1</option><option value="Sala 2">Sala 2</option></select>
+                    <select id="leito-select" class="form-select"><option value="">Selecione o destino...</option><option value="Recuperação">Recuperação</option><option value="UTI">UTI</option></select>
+                    <textarea id="observations" class="input-field !text-base text-left" placeholder="Observações (opcional)..." rows="3"></textarea>
+                    <button id="save-btn" class="btn-revolutionary btn-success" disabled>Salvar Atendimento</button>
                 </div>
-            <div class="space-y-3">
-                 <button id="mark-step-btn" class="action-button primary">Marcar Tempo</button>
-                 <button id="continue-btn" class="action-button secondary" style="display:none;">Continuar</button>
             </div>
         </section>
 
-        <section id="step-final" class="liquid-card" style="display: none;">
-            <div class="section-header">
-                <h2 class="section-title">Finalizar</h2>
-                <p class="section-subtitle">Complete os detalhes para salvar.</p>
+        <section id="step-success" class="step-container" style="display: none;">
+            <div class="step-card text-center">
+                 <div class="text-8xl mb-4">✅</div>
+                 <h2 class="step-title">Salvo com Sucesso!</h2>
+                 <p class="step-subtitle">O atendimento foi registrado.</p>
+                 <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Iniciar Novo Atendimento</button>
             </div>
-            <div class="space-y-4">
-                <select id="sala-select" class="form-select">
-                    <option value="">Selecione a sala...</option>
-                    <option value="Sala 1">Sala 1</option>
-                    <option value="Sala 2">Sala 2</option>
-                </select>
-                <select id="leito-select" class="form-select">
-                    <option value="">Selecione o destino...</option>
-                    <option value="Recuperação">Recuperação</option>
-                    <option value="UTI">UTI</option>
-                </select>
-                <button id="save-btn" class="action-button primary mt-4" disabled>
-                    <span id="save-btn-text">Salvar Atendimento</span>
-                    <div id="save-spinner" class="loading-spinner" style="display: none;"></div>
-                </button>
-            </div>
-        </section>
-
-        <section id="step-success" class="liquid-card text-center" style="display: none;">
-            <div class="text-6xl mb-4">✅</div>
-            <div class="section-header">
-                <h2 class="section-title">Salvo com Sucesso!</h2>
-                <p class="section-subtitle">O atendimento foi registrado.</p>
-            </div>
-            <button id="new-patient-btn" class="action-button primary mt-6">Iniciar Novo Atendimento</button>
         </section>
 
     </main>
+    
+    <div id="toast-container" class="toast-container"></div>
+    <div id="loading-overlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div></div>
 
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="script.js"></script>

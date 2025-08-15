@@ -1,234 +1,193 @@
 /*
-  HemoFlow v5.0 "Foco Clínico"
-  - Lógica Otimizada com Cache de DOM e Delegação de Eventos
-  - Interface Progressiva com Gerenciamento Dinâmico de Conteúdo
-  - Foco em Performance e Usabilidade
+  HemoFlow Revolutionary v4.0 - Código Completo e Otimizado
 */
 document.addEventListener('DOMContentLoaded', () => {
-
+    
     // --- CONFIGURAÇÃO ---
     const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwvGRx2h7Tl4OvHTjprfLE2YnQf8kvO7F8T1c3yuIkUMzTqQUQn5l-tSSTFwUiqL9er/exec";
-
+    
     // --- ESTADO DA APLICAÇÃO ---
-    let currentStepIndex = 0;
-    let previousStepIndex = -1;
+    let currentStep = 0;
     let pacienteAtual = null;
     let stepTimes = {};
     let html5QrCode = null;
     let isScanning = false;
-
-    // --- MAPEAMENTO DE ETAPAS ---
-    const STEPS = [
-        'welcome', 'scanner', 'patient', 'timeline', 'final', 'success'
+    
+    // Definição de todas as etapas do fluxo
+    const stepDefinitions = [
+        { id: 'welcome' },
+        { id: 'scanner' },
+        { id: 'patient' },
+        ...Array(9).fill().map((_, i) => ({ id: `timeline-${i+1}`, isTimeline: true })),
+        { id: 'final' },
+        { id: 'success' }
     ];
     
-    const TIMELINE_STEPS = [
-        'Chegada na Hemodinâmica', 'Entrada na Sala', 'Início da Cobertura',
+    const timelineStepNames = [
+        'Chegada na Hemodinâmica', 'Entrada na Sala', 'Início da Cobertura', 
         'Término da Cobertura', 'Início do Procedimento', 'Término do Procedimento',
         'Saída da Sala', 'Início da Limpeza', 'Término da Limpeza'
     ];
 
-    // --- CACHE DE ELEMENTOS DOM (PERFORMANCE) ---
-    const DOM = {};
-    const cacheDOMElements = () => {
-        DOM.sections = {};
-        STEPS.forEach(step => DOM.sections[step] = document.getElementById(`step-${step}`));
-
-        DOM.buttons = {
-            start: document.getElementById('start-btn'),
-            scan: document.getElementById('scan-btn'),
-            manualSubmit: document.getElementById('manual-submit-btn'),
-            startTimeline: document.getElementById('start-timeline-btn'),
-            markStep: document.getElementById('mark-step-btn'),
-            continue: document.getElementById('continue-btn'),
-            save: document.getElementById('save-btn'),
-            newPatient: document.getElementById('new-patient-btn'),
-        };
-        
-        DOM.inputs = {
-            manualPatientId: document.getElementById('manual-patient-id'),
-            salaSelect: document.getElementById('sala-select'),
-            leitoSelect: document.getElementById('leito-select'),
-        };
-
-        DOM.displays = {
-            reader: document.getElementById('reader'),
-            scannerStatus: document.getElementById('scanner-status'),
-            patientId: document.getElementById('patient-id-display'),
-            timelineTitle: document.getElementById('timeline-title'),
-            timelineSubtitle: document.getElementById('timeline-subtitle'),
-            timelineContent: document.getElementById('timeline-content'),
-            saveBtnText: document.getElementById('save-btn-text'),
-            saveSpinner: document.getElementById('save-spinner'),
-        };
-    };
+    const mainContainer = document.querySelector('.app-container');
 
     // --- INICIALIZAÇÃO ---
-    const init = () => {
-        console.log('🚀 HemoFlow v5.0 "Foco Clínico"');
-        cacheDOMElements();
+    function init() {
+        console.log('🚀 HemoFlow Revolutionary v4.0 iniciado!');
+        generateTimelineStepsHTML();
         setupEventListeners();
         showStep(0);
-    };
+    }
+
+    // --- GERAÇÃO DINÂMICA DE HTML ---
+    function generateTimelineStepsHTML() {
+        timelineStepNames.forEach((name, index) => {
+            const stepHtml = `
+            <section id="step-timeline-${index + 1}" class="step-container" style="display: none;">
+                <div class="step-card">
+                    <div class="step-header">
+                        <div class="step-number">${index + 1}</div>
+                        <h2 class="step-title">${name}</h2>
+                        <p class="step-subtitle">Pressione o botão para marcar o tempo.</p>
+                    </div>
+                    <div id="time-display-${index + 1}" class="text-center text-2xl my-8 text-white/70">Aguardando marcação...</div>
+                    <button data-step-index="${index + 1}" class="btn-revolutionary btn-primary mark-step-btn">Marcar Tempo</button>
+                </div>
+            </section>`;
+            mainContainer.insertAdjacentHTML('beforeend', stepHtml);
+        });
+    }
 
     // --- GERENCIAMENTO DE EVENTOS ---
-    const setupEventListeners = () => {
-        DOM.buttons.start.addEventListener('click', nextStep);
-        DOM.buttons.scan.addEventListener('click', toggleScanner);
-        DOM.buttons.manualSubmit.addEventListener('click', submitManualId);
-        DOM.inputs.manualPatientId.addEventListener('keypress', e => { if (e.key === 'Enter') submitManualId(); });
-        DOM.buttons.startTimeline.addEventListener('click', nextStep);
-        DOM.buttons.markStep.addEventListener('click', markTimelineStep);
-        DOM.buttons.continue.addEventListener('click', nextStep);
-        DOM.buttons.save.addEventListener('click', saveToGoogleSheets);
-        DOM.buttons.newPatient.addEventListener('click', resetSystem);
-        [DOM.inputs.salaSelect, DOM.inputs.leitoSelect].forEach(el => el.addEventListener('change', validateFinalForm));
-    };
+    function setupEventListeners() {
+        document.getElementById('start-btn').addEventListener('click', () => nextStep());
+        document.getElementById('scan-btn').addEventListener('click', toggleScanner);
+        document.getElementById('manual-submit-btn').addEventListener('click', submitManualId);
+        document.getElementById('patient-id-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitManualId();
+        });
+        document.getElementById('start-timeline-btn').addEventListener('click', () => nextStep());
+        document.getElementById('save-btn').addEventListener('click', saveToGoogleSheets);
+        document.getElementById('new-patient-btn').addEventListener('click', resetSystem);
+        
+        // Delegação de Eventos para botões da timeline
+        mainContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mark-step-btn')) {
+                const stepIndex = parseInt(e.target.dataset.stepIndex, 10);
+                markTimelineStep(stepIndex, e.target);
+            }
+        });
 
-    // --- NAVEGAÇÃO E UI ---
-    const showStep = (stepIndex) => {
-        currentStepIndex = stepIndex;
-        
-        if (previousStepIndex !== -1) {
-            DOM.sections[STEPS[previousStepIndex]].style.display = 'none';
-        }
-        DOM.sections[STEPS[stepIndex]].style.display = 'flex';
-        
-        previousStepIndex = stepIndex;
-        
-        // Configurações específicas de cada etapa
-        if (STEPS[stepIndex] === 'timeline') {
-            renderTimelineStep();
-        }
-    };
+        // Validação do formulário final
+        ['sala-select', 'leito-select'].forEach(id => {
+            document.getElementById(id).addEventListener('change', validateFinalForm);
+        });
+    }
 
-    const nextStep = () => {
-        if (currentStepIndex < STEPS.length - 1) {
-            showStep(currentStepIndex + 1);
+    // --- NAVEGAÇÃO ---
+    function showStep(stepIndex) {
+        document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
+        const stepId = stepDefinitions[stepIndex].id;
+        document.getElementById(`step-${stepId}`).style.display = 'flex';
+        currentStep = stepIndex;
+    }
+
+    function nextStep() {
+        if (currentStep < stepDefinitions.length - 1) {
+            showStep(currentStep + 1);
         }
-    };
-    
-    // --- LÓGICA DO SCANNER ---
-    const toggleScanner = async () => {
+    }
+
+    // --- SCANNER ---
+    async function toggleScanner() {
         if (isScanning) await stopScanner();
         else await startScanner();
-    };
+    }
 
-    const startScanner = async () => {
-        DOM.displays.reader.style.display = 'block';
-        DOM.displays.scannerStatus.textContent = 'Inicializando câmera...';
-        DOM.displays.scannerStatus.style.display = 'block';
-
+    async function startScanner() {
+        const readerDiv = document.getElementById('reader');
+        readerDiv.style.display = 'block';
         try {
             html5QrCode = new Html5Qrcode("reader");
-            const cameras = await Html5Qrcode.getCameras();
-            if (cameras.length === 0) throw new Error('Nenhuma câmera encontrada.');
-            
-            const cameraId = (cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0]).id;
-            
             await html5QrCode.start(
-                cameraId, { fps: 10, qrbox: { width: 250, height: 150 } },
-                (decodedText) => {
-                    stopScanner();
-                    processPatient(decodedText);
-                },
-                (errorMessage) => {} // Ignora erros contínuos
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                onScanSuccess,
+                () => {} 
             );
             isScanning = true;
-            DOM.buttons.scan.textContent = 'Parar Scanner';
-            DOM.displays.scannerStatus.textContent = 'Aponte para o QR Code.';
+            document.getElementById('scan-btn').textContent = 'Parar Scanner';
         } catch (err) {
-            DOM.displays.scannerStatus.textContent = `Erro: ${err.message}`;
+            alert(`Erro na câmera: ${err.message}`);
+            readerDiv.style.display = 'none';
         }
-    };
+    }
 
-    const stopScanner = async () => {
-        if (html5QrCode && isScanning) {
-            try { await html5QrCode.stop(); } catch (err) {}
+    async function stopScanner() {
+        if (isScanning) {
+            await html5QrCode.stop();
             isScanning = false;
-            DOM.buttons.scan.textContent = 'Escanear Pulseira';
-            DOM.displays.reader.style.display = 'none';
-            DOM.displays.scannerStatus.style.display = 'none';
+            document.getElementById('scan-btn').textContent = 'Ativar Scanner';
+            document.getElementById('reader').style.display = 'none';
         }
-    };
-    
-    // --- PROCESSAMENTO DO PACIENTE ---
-    const submitManualId = () => {
-        const patientId = DOM.inputs.manualPatientId.value.trim().toUpperCase();
-        if (patientId && patientId.length >= 3) {
-            processPatient(patientId);
-        } else {
-            alert('ID do paciente inválido.');
-        }
-    };
+    }
 
-    const processPatient = (patientId) => {
-        pacienteAtual = patientId;
-        DOM.displays.patientId.textContent = pacienteAtual;
-        stepTimes[0] = new Date(); // Marca o tempo de chegada
-        nextStep();
-    };
+    function onScanSuccess(decodedText) {
+        stopScanner();
+        processPatient(decodedText);
+    }
 
-    // --- LÓGICA DA TIMELINE (DINÂMICA) ---
-    const getCurrentTimelineStep = () => Object.keys(stepTimes).length -1;
-
-    const renderTimelineStep = () => {
-        const timelineStepIndex = getCurrentTimelineStep();
-        if (timelineStepIndex >= TIMELINE_STEPS.length) {
-            nextStep(); // Vai para a etapa final se a timeline acabou
+    // --- LÓGICA DO PACIENTE E TIMELINE ---
+    function submitManualId() {
+        const patientId = document.getElementById('patient-id-input').value.trim().toUpperCase();
+        if (patientId.length < 3) {
+            alert('ID do paciente deve ter pelo menos 3 caracteres.');
             return;
         }
+        processPatient(patientId);
+    }
 
-        DOM.displays.timelineTitle.textContent = TIMELINE_STEPS[timelineStepIndex];
-        DOM.displays.timelineSubtitle.textContent = `Passo ${timelineStepIndex + 1} de ${TIMELINE_STEPS.length}`;
-        DOM.displays.timelineContent.innerHTML = `
-            <div class="text-6xl mb-4">⏱️</div>
-            <p class="text-white/60">Aguardando marcação...</p>
-        `;
-        DOM.buttons.markStep.style.display = 'flex';
-        DOM.buttons.continue.style.display = 'none';
-        DOM.buttons.markStep.disabled = false;
-    };
-    
-    const markTimelineStep = () => {
+    function processPatient(patientId) {
+        pacienteAtual = patientId;
+        stepTimes = { 0: new Date() }; // Marca o tempo inicial
+        document.getElementById('patient-id-display').textContent = pacienteAtual;
+        nextStep();
+    }
+
+    function markTimelineStep(stepIndex, button) {
         const now = new Date();
-        const timelineStepIndex = getCurrentTimelineStep();
-        const timeIndex = timelineStepIndex + 1;
-        stepTimes[timeIndex] = now;
+        stepTimes[stepIndex] = now;
         
-        const previousTime = stepTimes[timeIndex - 1];
-        const duration = calculateDuration(previousTime, now);
+        button.disabled = true;
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-success');
+        button.textContent = '✅ Marcado';
 
-        DOM.displays.timelineContent.innerHTML = `
-            <div class="text-6xl mb-4">✅</div>
-            <p class="text-2xl font-bold">${formatTime(now)}</p>
-            <p class="text-accent text-lg">Duração da etapa: ${formatDuration(duration)}</p>
-        `;
-        
-        DOM.buttons.markStep.style.display = 'none';
-        DOM.buttons.continue.style.display = 'flex';
-    };
+        const timeDisplay = document.getElementById(`time-display-${stepIndex}`);
+        timeDisplay.innerHTML = `Marcado às <span class="font-bold">${formatTime(now)}</span>`;
 
-    // --- FINALIZAÇÃO E SALVAMENTO ---
-    const validateFinalForm = () => {
-        DOM.buttons.save.disabled = !(DOM.inputs.salaSelect.value && DOM.inputs.leitoSelect.value);
-    };
+        setTimeout(() => nextStep(), 1000); // Avança automaticamente após 1s
+    }
 
-    const saveToGoogleSheets = async () => {
-        DOM.buttons.save.disabled = true;
-        DOM.displays.saveBtnText.style.display = 'none';
-        DOM.displays.saveSpinner.style.display = 'block';
+    // --- FINALIZAÇÃO ---
+    function validateFinalForm() {
+        const sala = document.getElementById('sala-select').value;
+        const leito = document.getElementById('leito-select').value;
+        document.getElementById('save-btn').disabled = !(sala && leito);
+    }
+    
+    async function saveToGoogleSheets() {
+        showLoading(true);
+        const data = {
+            patientId: pacienteAtual,
+            sala: document.getElementById('sala-select').value,
+            destino: document.getElementById('leito-select').value,
+            observacoes: document.getElementById('observations').value,
+            stepTimes: Object.fromEntries(Object.entries(stepTimes).map(([k, v]) => [k, v.toISOString()])),
+            timestamp: new Date().toISOString()
+        };
 
         try {
-            const data = {
-                patientId: pacienteAtual,
-                sala: DOM.inputs.salaSelect.value,
-                destino: DOM.inputs.leitoSelect.value,
-                stepTimes: Object.fromEntries(Object.entries(stepTimes).map(([k, v]) => [k, v.toISOString()])),
-                timestamp: new Date().toISOString(),
-                version: 'v5.0'
-            };
-
             await fetch(URL_BACKEND, {
                 method: 'POST', mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
@@ -236,40 +195,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             nextStep();
         } catch (error) {
-            alert(`Erro ao salvar: ${error.message}. Os dados não foram perdidos.`);
+            alert('Erro ao enviar dados. Verifique a conexão.');
         } finally {
-            DOM.buttons.save.disabled = false;
-            DOM.displays.saveBtnText.style.display = 'inline';
-            DOM.displays.saveSpinner.style.display = 'none';
+            showLoading(false);
         }
-    };
+    }
+
+    // --- RESET ---
+    function resetSystem() {
+        window.location.reload();
+    }
     
-    // --- RESET DO SISTEMA ---
-    const resetSystem = () => {
-        if (isScanning) stopScanner();
-        
-        currentStepIndex = 0;
-        previousStepIndex = -1;
-        pacienteAtual = null;
-        stepTimes = {};
-        
-        // Limpa formulários
-        DOM.inputs.manualPatientId.value = '';
-        DOM.inputs.salaSelect.value = '';
-        DOM.inputs.leitoSelect.value = '';
-
-        showStep(0);
-    };
-
-    // --- FUNÇÕES UTILITÁRIAS ---
+    // --- UTILITÁRIOS ---
     const formatTime = (date) => date.toLocaleTimeString('pt-BR');
-    const calculateDuration = (start, end) => (end - start) / 60000; // em minutos
-    const formatDuration = (minutes) => {
-        const mins = Math.floor(minutes);
-        const secs = Math.round((minutes - mins) * 60);
-        return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+    const showLoading = (isLoading) => {
+        document.getElementById('loading-overlay').style.display = isLoading ? 'flex' : 'none';
     };
 
-    // --- INICIA A APLICAÇÃO ---
     init();
 });
