@@ -1,10 +1,12 @@
 /*
-  HemoFlow Revolutionary v4.0 - Código Completo e Otimizado
+  HemoFlow Revolutionary v4.0 - Versão Corrigida e Otimizada
+  - Correção na sensibilidade do scanner e feedback de depuração.
+  - Correção na estrutura de dados (stepTimes) para garantir o salvamento no Google Sheets.
 */
 document.addEventListener('DOMContentLoaded', () => {
     
     // --- CONFIGURAÇÃO ---
-    const URL_BACKEND = "https://script.google.com/macros/library/d/1XcqR8ICKgjPo91dTr5Ekkq9PSH8rriF4OG6u8-Bn2OX7NtZMaXB6Jruj/1";
+    const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwvGRx2h7Tl4OvHTjprfLE2YnQf8kvO7F8T1c3yuIkUMzTqQUQn5l-tSSTFwUiqL9er/exec";
     
     // --- ESTADO DA APLICAÇÃO ---
     let currentStep = 0;
@@ -29,11 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
         'Saída da Sala', 'Início da Limpeza', 'Término da Limpeza'
     ];
 
-    const mainContainer = document.querySelector('.app-container');
+    const mainContainer = document.querySelector('main.app-container');
 
     // --- INICIALIZAÇÃO ---
     function init() {
-        console.log('🚀 HemoFlow Revolutionary v4.0 iniciado!');
+        console.log('🚀 HemoFlow v4.0 (Corrigido) iniciado!');
         generateTimelineStepsHTML();
         setupEventListeners();
         showStep(0);
@@ -70,15 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('save-btn').addEventListener('click', saveToGoogleSheets);
         document.getElementById('new-patient-btn').addEventListener('click', resetSystem);
         
-        // Delegação de Eventos para botões da timeline
         mainContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('mark-step-btn')) {
-                const stepIndex = parseInt(e.target.dataset.stepIndex, 10);
-                markTimelineStep(stepIndex, e.target);
+            const markButton = e.target.closest('.mark-step-btn');
+            if (markButton) {
+                const stepIndex = parseInt(markButton.dataset.stepIndex, 10);
+                markTimelineStep(stepIndex, markButton);
             }
         });
 
-        // Validação do formulário final
         ['sala-select', 'leito-select'].forEach(id => {
             document.getElementById(id).addEventListener('change', validateFinalForm);
         });
@@ -88,7 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function showStep(stepIndex) {
         document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
         const stepId = stepDefinitions[stepIndex].id;
-        document.getElementById(`step-${stepId}`).style.display = 'flex';
+        const currentStepElement = document.getElementById(`step-${stepId}`);
+        if (currentStepElement) {
+            currentStepElement.style.display = 'flex';
+        }
         currentStep = stepIndex;
     }
 
@@ -98,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- SCANNER ---
+    // --- SCANNER (CORRIGIDO) ---
     async function toggleScanner() {
         if (isScanning) await stopScanner();
         else await startScanner();
@@ -109,11 +113,18 @@ document.addEventListener('DOMContentLoaded', () => {
         readerDiv.style.display = 'block';
         try {
             html5QrCode = new Html5Qrcode("reader");
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 280, height: 180 } // Aumentado para melhor reconhecimento
+            };
             await html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 150 } },
+                config,
                 onScanSuccess,
-                () => {} 
+                (errorMessage) => { 
+                    // Log de erros de scan para depuração, se necessário
+                    // console.log("Scan failed:", errorMessage);
+                } 
             );
             isScanning = true;
             document.getElementById('scan-btn').textContent = 'Parar Scanner';
@@ -124,8 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function stopScanner() {
-        if (isScanning) {
-            await html5QrCode.stop();
+        if (isScanning && html5QrCode) {
+            try {
+                await html5QrCode.stop();
+            } catch(e) {
+                console.error("Erro ao parar scanner:", e);
+            }
+            html5QrCode = null;
             isScanning = false;
             document.getElementById('scan-btn').textContent = 'Ativar Scanner';
             document.getElementById('reader').style.display = 'none';
@@ -133,11 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onScanSuccess(decodedText) {
-        stopScanner();
-        processPatient(decodedText);
+        if (isScanning) { // Evita múltiplos acionamentos
+            stopScanner();
+            processPatient(decodedText);
+        }
     }
 
-    // --- LÓGICA DO PACIENTE E TIMELINE ---
+    // --- LÓGICA DO PACIENTE E TIMELINE (CORRIGIDO) ---
     function submitManualId() {
         const patientId = document.getElementById('patient-id-input').value.trim().toUpperCase();
         if (patientId.length < 3) {
@@ -149,13 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function processPatient(patientId) {
         pacienteAtual = patientId;
-        stepTimes = { 0: new Date() }; // Marca o tempo inicial
+        // CORREÇÃO: Inicializa o stepTimes vazio. O primeiro tempo será o passo 1.
+        stepTimes = {};
         document.getElementById('patient-id-display').textContent = pacienteAtual;
         nextStep();
     }
 
     function markTimelineStep(stepIndex, button) {
         const now = new Date();
+        // CORREÇÃO: stepTimes agora usa chaves de 1 a 9, como esperado pela planilha.
         stepTimes[stepIndex] = now;
         
         button.disabled = true;
@@ -166,10 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeDisplay = document.getElementById(`time-display-${stepIndex}`);
         timeDisplay.innerHTML = `Marcado às <span class="font-bold">${formatTime(now)}</span>`;
 
-        setTimeout(() => nextStep(), 1000); // Avança automaticamente após 1s
+        setTimeout(() => nextStep(), 1000);
     }
 
-    // --- FINALIZAÇÃO ---
+    // --- FINALIZAÇÃO (CORRIGIDO) ---
     function validateFinalForm() {
         const sala = document.getElementById('sala-select').value;
         const leito = document.getElementById('leito-select').value;
@@ -178,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function saveToGoogleSheets() {
         showLoading(true);
+        // CORREÇÃO: A estrutura de 'stepTimes' agora está correta para o backend
         const data = {
             patientId: pacienteAtual,
             sala: document.getElementById('sala-select').value,
@@ -187,15 +208,18 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: new Date().toISOString()
         };
 
+        console.log("Enviando para Google Sheets:", data); // Log para depuração
+
         try {
             await fetch(URL_BACKEND, {
-                method: 'POST', mode: 'no-cors',
+                method: 'POST',
+                mode: 'no-cors', // Essencial para Google Apps Script
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             nextStep();
         } catch (error) {
-            alert('Erro ao enviar dados. Verifique a conexão.');
+            alert('Erro ao enviar dados. Verifique a conexão com a internet.');
         } finally {
             showLoading(false);
         }
