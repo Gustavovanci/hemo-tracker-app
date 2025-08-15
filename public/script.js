@@ -4,7 +4,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     
     // --- CONFIGURAÇÃO ---
-    const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwvGRx2h7Tl4OvHTjprfLE2YnQf8kvO7F8T1c3yuIkUMzTqQUQn5l-tSSTFwUiqL9er/exec";
+    const URL_BACKEND = "https://script.google.com/macros/library/d/1XcqR8ICKgjPo91dTr5Ekkq9PSH8rriF4OG6u8-Bn2OX7NtZMaXB6Jruj/1";
     
     // --- ESTADO DA APLICAÇÃO ---
     let currentStep = 0;
