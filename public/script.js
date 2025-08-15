@@ -2,6 +2,7 @@
   HemoFlow Revolutionary v4.0 - Versão Final e Funcional
   - Scanner, ID Manual e Salvamento no Google Sheets 100% funcionais.
   - Novo Dashboard de Análise integrado para visualização de KPIs.
+  - CORREÇÃO: Cor das fontes do gráfico ajustada para branco para melhor legibilidade.
 */
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -245,7 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculateKPIs(data) {
         const hoje = new Date().toISOString().slice(0, 10);
-        const atendimentosHoje = data.filter(d => d.Data.slice(0, 10) === hoje);
+        // Ajuste para o nome da coluna correto da sua planilha
+        const atendimentosHoje = data.filter(d => d.Data && d.Data.slice(0, 10) === hoje);
         const totalHoje = atendimentosHoje.length;
 
         const temposTotais = data.map(d => parseFloat(d.Tempo_Total_min)).filter(t => !isNaN(t));
@@ -303,7 +305,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     borderRadius: 5,
                 }]
             },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            color: 'rgba(255, 255, 255, 0.8)' // Cor dos números do eixo Y
+                        },
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.1)' // Cor das linhas de grade do eixo Y
+                        }
+                    },
+                    x: {
+                        ticks: { 
+                            color: 'rgba(255, 255, 255, 0.8)' // Cor dos rótulos do eixo X
+                        },
+                        grid: { 
+                            color: 'rgba(255, 255, 255, 0.1)' // Cor das linhas de grade do eixo X
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                       display: false // Legenda já estava oculta, mantendo
+                    },
+                    tooltip: {
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#FFFFFF',
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    }
+                }
+            }
         });
     }
 
