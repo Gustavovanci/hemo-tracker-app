@@ -1,237 +1,226 @@
 /*
-  ARQUIVO: script.js
-  -------------------
-  HemoFlow v3.0 - Sistema Avançado com Analytics Preditivos
-  - Câmera traseira corrigida
-  - Design moderno e responsivo
-  - Analytics em tempo real
-  - Integração robusta com Google Sheets
-  - Sistema de notificações inteligentes
-  - Previsões baseadas em dados históricos
+  HemoFlow Revolutionary v4.0
+  Interface Step-by-Step Progressiva
+  Cada etapa só aparece após completar a anterior
 */
 
 document.addEventListener('DOMContentLoaded', () => {
-
+    
     // --- CONFIGURAÇÃO ---
-    // IMPORTANTE: Substitua pela URL do seu Google Apps Script
     const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwvGRx2h7Tl4OvHTjprfLE2YnQf8kvO7F8T1c3yuIkUMzTqQUQn5l-tSSTFwUiqL9er/exec";
     
-    // --- SELETORES DO DOM ---
-    const startScanBtn = document.getElementById('start-scan-btn');
-    const readerDiv = document.getElementById('reader');
-    const patientInfo = document.getElementById('patient-info');
-    const patientIdSpan = document.getElementById('patient-id');
-    const timelineSection = document.getElementById('timeline-section');
-    const analyticsSection = document.getElementById('analytics-section');
-    const statsSection = document.getElementById('stats-section');
-    const finalSection = document.getElementById('final-section');
-    const nextStepBtn = document.getElementById('next-step-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    const salaSelect = document.getElementById('sala-select');
-    const leitoSelect = document.getElementById('leito-select');
-    const checkoutBtn = document.getElementById('checkout-btn');
-    const scannerStatus = document.getElementById('scanner-status');
-    const manualPatientId = document.getElementById('manual-patient-id');
-    const manualSubmitBtn = document.getElementById('manual-submit-btn');
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    const currentStepSpan = document.getElementById('current-step');
-
     // --- ESTADO DA APLICAÇÃO ---
-    let html5QrCode = null;
-    let pacienteAtual = null;
     let currentStep = 0;
+    let pacienteAtual = null;
     let stepTimes = {};
+    let html5QrCode = null;
     let isScanning = false;
-    let historicalData = getHistoricalData();
-    let analyticsInterval = null;
     
-    // Configuração da câmera otimizada para traseira
-    const cameraConfig = {
-        fps: 10,
-        qrbox: { width: 280, height: 200 },
-        aspectRatio: 1.0,
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true
-    };
-
-    // Nomes das etapas
+    // Steps do sistema
+    const steps = [
+        'welcome',
+        'scanner', 
+        'patient',
+        'timeline-1', 'timeline-2', 'timeline-3', 'timeline-4', 
+        'timeline-5', 'timeline-6', 'timeline-7', 'timeline-8', 'timeline-9',
+        'final',
+        'success'
+    ];
+    
     const stepNames = [
+        'Bem-vindo',
+        'Scanner',
+        'Paciente',
         'Chegada na Hemodinâmica',
-        'Entrada na Sala', 
-        'Início da Cobertura',
+        'Entrada na Sala',
+        'Início da Cobertura', 
         'Término da Cobertura',
         'Início do Procedimento',
         'Término do Procedimento',
         'Saída da Sala',
         'Início da Limpeza',
-        'Término da Limpeza'
+        'Término da Limpeza',
+        'Finalização',
+        'Sucesso'
     ];
 
     // --- INICIALIZAÇÃO ---
     function init() {
-        console.log('🚀 HemoFlow v3.0 iniciado!');
+        console.log('🚀 HemoFlow Revolutionary v4.0 iniciado!');
         
-        // Event Listeners
-        startScanBtn.addEventListener('click', toggleScanner);
-        nextStepBtn.addEventListener('click', proximaEtapa);
-        resetBtn.addEventListener('click', resetarAplicativo);
-        checkoutBtn.addEventListener('click', finalizarAtendimento);
-        manualSubmitBtn.addEventListener('click', handleManualInput);
+        setupEventListeners();
+        updateSystemStatus();
+        showStep(0); // Mostrar welcome
         
-        // Enter key no input manual
-        manualPatientId.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleManualInput();
+        console.log('✅ Sistema step-by-step pronto!');
+    }
+
+    // --- CONFIGURAÇÃO DE EVENTOS ---
+    function setupEventListeners() {
+        // Welcome
+        document.getElementById('start-btn').addEventListener('click', () => nextStep());
+        
+        // Scanner
+        document.getElementById('scan-btn').addEventListener('click', toggleScanner);
+        document.getElementById('manual-submit-btn').addEventListener('click', submitManualId);
+        document.getElementById('patient-id-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitManualId();
+        });
+        
+        // Patient
+        document.getElementById('start-timeline-btn').addEventListener('click', () => nextStep());
+        
+        // Timeline steps
+        for (let i = 1; i <= 9; i++) {
+            const btn = document.getElementById(`mark-step-${i}`);
+            if (btn) {
+                btn.addEventListener('click', () => markTimelineStep(i));
+            }
+        }
+        
+        // Final
+        document.getElementById('sala-select').addEventListener('change', validateFinalForm);
+        document.getElementById('leito-select').addEventListener('change', validateFinalForm);
+        document.getElementById('save-btn').addEventListener('click', saveToGoogleSheets);
+        
+        // Success
+        document.getElementById('new-patient-btn').addEventListener('click', resetSystem);
+    }
+
+    // --- NAVEGAÇÃO STEP-BY-STEP ---
+    function showStep(stepIndex) {
+        // Esconde todos os steps
+        steps.forEach((step, index) => {
+            const element = document.getElementById(`step-${step}`);
+            if (element) {
+                element.style.display = index === stepIndex ? 'flex' : 'none';
             }
         });
         
-        // Monitora selects para habilitar botão final
-        [salaSelect, leitoSelect].forEach(select => {
-            select.addEventListener('change', verificarBotaoFinalizar);
-        });
+        // Atualiza indicador de progresso
+        updateProgressIndicator(stepIndex);
         
-        // Atualiza status do sistema
-        updateSystemStatus();
+        // Scroll to top suave
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Inicializa analytics se houver dados históricos
-        if (historicalData.length > 0) {
-            updateAnalytics();
+        // Vibração para feedback
+        if (navigator.vibrate && stepIndex > 0) {
+            navigator.vibrate(100);
         }
         
-        console.log('✅ Inicialização concluída');
+        console.log(`📍 Mostrando step ${stepIndex}: ${steps[stepIndex]}`);
     }
 
-    // --- LÓGICA DO SCANNER COM CÂMERA TRASEIRA ---
+    function nextStep() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    }
+
+    function updateProgressIndicator(stepIndex) {
+        const indicator = document.getElementById('current-step-indicator');
+        if (indicator) {
+            indicator.textContent = stepIndex + 1;
+        }
+    }
+
+    // --- SCANNER FUNCTIONALITY ---
     async function toggleScanner() {
         if (isScanning) {
-            await pararScanner();
+            await stopScanner();
         } else {
-            await iniciarScanner();
+            await startScanner();
         }
     }
 
-    async function iniciarScanner() {
-        console.log('📷 Iniciando scanner com câmera traseira...');
+    async function startScanner() {
+        console.log('📷 Iniciando scanner revolucionário...');
         
         try {
-            // Mostra status de carregamento
-            scannerStatus.style.display = 'block';
-            scannerStatus.innerHTML = '<div class="loading inline-block mr-2"></div>Acessando câmera traseira...';
+            showScannerStatus('Inicializando câmera traseira...');
             
-            // Verifica se o navegador suporta câmera
+            // Verifica suporte
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error('Câmera não disponível neste navegador');
             }
             
-            // Solicita permissão para câmera traseira
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
-                });
-                stream.getTracks().forEach(track => track.stop()); // Para o stream de teste
-            } catch (permissionError) {
-                console.warn('Erro de permissão, tentando sem constraints:', permissionError);
-            }
+            // Testa permissão
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" } 
+            });
+            stream.getTracks().forEach(track => track.stop());
             
-            // Inicializa o HTML5QrCode
+            // Inicializa scanner
+            const readerDiv = document.getElementById('reader');
             readerDiv.style.display = 'block';
             html5QrCode = new Html5Qrcode("reader");
             
-            // Lista câmeras disponíveis
+            // Lista câmeras
             const cameras = await Html5Qrcode.getCameras();
             console.log('📱 Câmeras encontradas:', cameras.length);
             
             if (cameras.length === 0) {
-                throw new Error('Nenhuma câmera encontrada no dispositivo');
+                throw new Error('Nenhuma câmera encontrada');
             }
             
-            // Encontra a câmera traseira
-            let selectedCamera = null;
-            
-            // Estratégias para encontrar câmera traseira
-            const backCameraKeywords = ['back', 'rear', 'environment', 'facing back', 'camera2'];
-            
-            // 1. Procura por palavras-chave no label
-            selectedCamera = cameras.find(camera => {
+            // Seleciona câmera traseira
+            let selectedCamera = cameras.find(camera => {
                 const label = camera.label.toLowerCase();
-                return backCameraKeywords.some(keyword => label.includes(keyword));
-            });
-            
-            // 2. Se não encontrou, usa a última câmera (geralmente traseira)
-            if (!selectedCamera && cameras.length > 1) {
-                selectedCamera = cameras[cameras.length - 1];
-            }
-            
-            // 3. Fallback para primeira câmera
-            if (!selectedCamera) {
-                selectedCamera = cameras[0];
-            }
+                return ['back', 'rear', 'environment', 'facing back'].some(keyword => 
+                    label.includes(keyword)
+                );
+            }) || cameras[cameras.length - 1];
             
             console.log('📸 Câmera selecionada:', selectedCamera.label);
             
-            // Configuração de constraints para forçar câmera traseira
-            const constraints = {
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            };
-            
-            // Inicia o scanner
+            // Inicia scanner
             await html5QrCode.start(
                 selectedCamera.id,
                 {
-                    ...cameraConfig,
-                    videoConstraints: constraints
+                    fps: 10,
+                    qrbox: { width: 300, height: 200 },
+                    aspectRatio: 1.0,
+                    videoConstraints: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
                 },
                 onScanSuccess,
                 onScanFailure
             );
             
             isScanning = true;
-            startScanBtn.innerHTML = `
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            
+            // Atualiza interface
+            const scanBtn = document.getElementById('scan-btn');
+            scanBtn.innerHTML = `
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 Parar Scanner
             `;
-            startScanBtn.classList.add('danger');
-            startScanBtn.classList.remove('primary');
+            scanBtn.classList.remove('btn-primary');
+            scanBtn.classList.add('btn-danger');
             
-            scannerStatus.innerHTML = '<span class="text-success-400">✓ Scanner ativo - aponte para o QR Code</span>';
+            showScannerStatus('Scanner ativo - aponte para o QR Code', 'success');
             
-            // Adiciona vibração se disponível
+            // Vibração de sucesso
             if (navigator.vibrate) {
-                navigator.vibrate(100);
+                navigator.vibrate(200);
             }
             
-            console.log('✅ Scanner iniciado com sucesso');
-            
         } catch (error) {
-            console.error('❌ Erro ao iniciar scanner:', error);
+            console.error('❌ Erro no scanner:', error);
+            showScannerStatus(`Erro: ${error.message}`, 'error');
             
-            const errorMessages = {
-                'NotAllowedError': 'Permissão de câmera negada. Permita o acesso e tente novamente.',
-                'NotFoundError': 'Nenhuma câmera encontrada no dispositivo.',
-                'NotReadableError': 'Câmera está sendo usada por outro aplicativo.',
-                'OverconstrainedError': 'Câmera não atende aos requisitos solicitados.',
-                'SecurityError': 'Acesso à câmera bloqueado por questões de segurança.'
-            };
-            
-            const userMessage = errorMessages[error.name] || error.message || 'Erro desconhecido na câmera';
-            
-            scannerStatus.innerHTML = `<span class="text-danger-400">❌ ${userMessage}</span>`;
-            
-            showToast('Erro na câmera. Use o input manual abaixo.', 'warning');
-            
-            // Focus no input manual como fallback
-            manualPatientId.focus();
-            manualPatientId.placeholder = 'Digite o ID do paciente (câmera indisponível)';
+            // Focus no input manual
+            document.getElementById('patient-id-input').focus();
         }
     }
 
-    async function pararScanner() {
+    async function stopScanner() {
         console.log('📷 Parando scanner...');
         
         try {
@@ -242,19 +231,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             isScanning = false;
-            readerDiv.style.display = 'none';
-            scannerStatus.style.display = 'none';
+            document.getElementById('reader').style.display = 'none';
+            hideScannerStatus();
             
-            startScanBtn.innerHTML = `
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            // Restaura botão
+            const scanBtn = document.getElementById('scan-btn');
+            scanBtn.innerHTML = `
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
                 </svg>
-                Escanear Pulseira do Paciente
+                Ativar Scanner
             `;
-            startScanBtn.classList.remove('danger');
-            startScanBtn.classList.add('primary');
-            
-            console.log('✅ Scanner parado');
+            scanBtn.classList.remove('btn-danger');
+            scanBtn.classList.add('btn-primary');
             
         } catch (error) {
             console.error('❌ Erro ao parar scanner:', error);
@@ -264,497 +253,304 @@ document.addEventListener('DOMContentLoaded', () => {
     function onScanSuccess(decodedText, decodedResult) {
         console.log(`✅ QR Code escaneado: ${decodedText}`);
         
-        // Para o scanner automaticamente
-        pararScanner();
+        // Para scanner
+        stopScanner();
         
-        // Adiciona vibração de sucesso
+        // Processa paciente
+        processPatient(decodedText);
+        
+        // Feedback haptic
         if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]);
+            navigator.vibrate([200, 100, 200]);
         }
-        
-        // Processa o paciente
-        processarPaciente(decodedText);
-        
-        showToast(`Paciente ${decodedText} identificado com sucesso!`, 'success');
     }
 
     function onScanFailure(error) {
-        // Ignora erros frequentes de scan para não poluir o console
+        // Ignora erros frequentes
     }
 
-    function handleManualInput() {
-        const patientId = manualPatientId.value.trim();
-        
-        if (!patientId) {
-            showToast('Digite o ID do paciente', 'warning');
-            manualPatientId.focus();
-            return;
-        }
-        
-        // Validação básica do ID
-        if (patientId.length < 3) {
-            showToast('ID do paciente deve ter pelo menos 3 caracteres', 'warning');
-            manualPatientId.focus();
-            return;
-        }
-        
-        console.log(`📝 ID manual inserido: ${patientId}`);
-        processarPaciente(patientId);
-        manualPatientId.value = '';
-        
-        showToast(`Paciente ${patientId} inserido manualmente!`, 'success');
-    }
-
-    function processarPaciente(patientId) {
-        // Sanitiza o ID do paciente
-        pacienteAtual = patientId.toUpperCase().trim();
-        patientIdSpan.textContent = pacienteAtual;
-        
-        // Atualiza informações do paciente
-        document.getElementById('entry-time').textContent = formatarHorario(new Date());
-        document.getElementById('final-patient-id').textContent = pacienteAtual;
-        
-        // Mostra seções relevantes
-        patientInfo.style.display = 'block';
-        timelineSection.style.display = 'block';
-        analyticsSection.style.display = 'block';
-        
-        // Atualiza interface
-        startScanBtn.disabled = true;
-        nextStepBtn.disabled = false;
-        manualPatientId.disabled = true;
-        manualSubmitBtn.disabled = true;
-        
-        // Ativa primeira etapa
-        ativarEtapa(1);
-        
-        // Inicia analytics em tempo real
-        startRealTimeAnalytics();
-        
-        console.log('📋 Paciente processado e timeline iniciada');
-    }
-
-    // --- LÓGICA DA TIMELINE APRIMORADA ---
-    function ativarEtapa(numeroEtapa) {
-        const stepIndicator = document.getElementById(`step${numeroEtapa}`);
-        if (stepIndicator) {
-            stepIndicator.classList.remove('pending');
-            stepIndicator.classList.add('active');
-            
-            // Atualiza texto do botão
-            if (numeroEtapa <= stepNames.length) {
-                nextStepBtn.innerHTML = `
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
-                    </svg>
-                    Marcar: ${stepNames[numeroEtapa - 1]}
-                `;
-            }
-            
-            // Scroll suave para a etapa ativa
-            stepIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Atualiza indicadores de progresso
-            updateProgress();
-            
-            console.log(`🎯 Etapa ${numeroEtapa} ativada: ${stepNames[numeroEtapa - 1]}`);
-        }
-    }
-
-    function proximaEtapa() {
-        if (currentStep < stepNames.length) {
-            currentStep++;
-            const agora = new Date();
-            stepTimes[currentStep] = agora;
-            
-            console.log(`✅ Etapa ${currentStep} concluída: ${stepNames[currentStep - 1]}`);
-            
-            // Marca etapa atual como completa
-            const stepIndicator = document.getElementById(`step${currentStep}`);
-            const timeElement = document.getElementById(`time${currentStep}`);
-            
-            if (stepIndicator && timeElement) {
-                stepIndicator.classList.remove('active', 'pending');
-                stepIndicator.classList.add('completed');
-                stepIndicator.innerHTML = '✓';
-                
-                timeElement.textContent = formatarHorario(agora);
-                
-                // Calcula duração desde etapa anterior
-                if (currentStep > 1) {
-                    const tempoAnterior = stepTimes[currentStep - 1];
-                    const duracao = calcularDuracao(tempoAnterior, agora);
-                    const durationElement = document.getElementById(`duration${currentStep - 1}`);
-                    if (durationElement) {
-                        durationElement.textContent = `Duração: ${formatarDuracao(duracao)}`;
-                    }
-                }
-            }
-            
-            // Adiciona vibração de confirmação
-            if (navigator.vibrate) {
-                navigator.vibrate(200);
-            }
-            
-            // Atualiza analytics
-            updateRealTimeAnalytics();
-            
-            // Próxima etapa ou finalização
-            if (currentStep < stepNames.length) {
-                ativarEtapa(currentStep + 1);
-            } else {
-                // Todas as etapas concluídas
-                nextStepBtn.disabled = true;
-                nextStepBtn.innerHTML = '✅ Todas as Etapas Concluídas';
-                nextStepBtn.classList.remove('success');
-                nextStepBtn.classList.add('disabled');
-                
-                // Mostra seções finais
-                statsSection.style.display = 'block';
-                finalSection.style.display = 'block';
-                
-                // Para analytics em tempo real
-                stopRealTimeAnalytics();
-                
-                // Calcula estatísticas finais
-                calcularEstatisticas();
-                
-                showToast('Procedimento concluído! Preencha os dados finais.', 'success');
-                
-                console.log('🎉 Todas as etapas concluídas!');
-            }
-            
-            // Atualiza progresso
-            updateProgress();
-        }
-    }
-
-    function updateProgress() {
-        const progress = (currentStep / stepNames.length) * 100;
-        progressBar.style.width = `${progress}%`;
-        progressText.textContent = `${Math.round(progress)}% concluído`;
-        currentStepSpan.textContent = `Etapa ${currentStep + 1}/${stepNames.length}`;
-    }
-
-    // --- ANALYTICS PREDITIVOS ---
-    function startRealTimeAnalytics() {
-        console.log('🤖 Iniciando analytics em tempo real...');
-        
-        analyticsInterval = setInterval(() => {
-            updateRealTimeAnalytics();
-        }, 30000); // Atualiza a cada 30 segundos
-        
-        updateRealTimeAnalytics();
-    }
-
-    function stopRealTimeAnalytics() {
-        if (analyticsInterval) {
-            clearInterval(analyticsInterval);
-            analyticsInterval = null;
-            console.log('🤖 Analytics em tempo real parados');
-        }
-    }
-
-    function updateRealTimeAnalytics() {
-        if (currentStep === 0) return;
-        
-        // Previsão de conclusão baseada no histórico
-        const previsao = calcularPrevisaoConlusao();
-        const previsaoElement = document.getElementById('predicted-completion');
-        if (previsaoElement) {
-            previsaoElement.textContent = previsao;
-        }
-        
-        // Status de performance
-        const performance = avaliarPerformance();
-        updatePerformanceStatus(performance);
-        
-        // Alertas inteligentes
-        updateSmartAlerts();
-        
-        console.log('📊 Analytics atualizados');
-    }
-
-    function calcularPrevisaoConlusao() {
-        if (currentStep === 0 || historicalData.length === 0) return '--:--';
-        
-        try {
-            const tempoAtual = Date.now();
-            const tempoInicio = stepTimes[1].getTime();
-            const tempoDecorrido = (tempoAtual - tempoInicio) / 60000; // em minutos
-            
-            // Calcula tempo médio histórico baseado na etapa atual
-            const tempoMedioTotal = historicalData.reduce((acc, item) => acc + item.tempoTotal, 0) / historicalData.length;
-            const progressoAtual = currentStep / stepNames.length;
-            const tempoEstimadoRestante = (tempoMedioTotal * (1 - progressoAtual));
-            
-            const previsaoConclusao = new Date(tempoAtual + (tempoEstimadoRestante * 60000));
-            
-            return formatarHorario(previsaoConclusao);
-        } catch (error) {
-            console.error('Erro no cálculo de previsão:', error);
-            return '--:--';
-        }
-    }
-
-    function avaliarPerformance() {
-        if (currentStep === 0 || historicalData.length === 0) {
-            return { status: 'normal', message: 'Coletando dados...' };
-        }
-        
-        try {
-            const tempoAtual = Date.now();
-            const tempoInicio = stepTimes[1].getTime();
-            const tempoDecorrido = (tempoAtual - tempoInicio) / 60000;
-            
-            const tempoMedioAteFase = calcularTempoMedioAteFase(currentStep);
-            
-            if (tempoDecorrido < tempoMedioAteFase * 0.8) {
-                return { status: 'excelente', message: '🚀 Muito rápido!' };
-            } else if (tempoDecorrido < tempoMedioAteFase * 1.2) {
-                return { status: 'normal', message: '✓ No prazo' };
-            } else if (tempoDecorrido < tempoMedioAteFase * 1.5) {
-                return { status: 'atencao', message: '⚠️ Atenção' };
-            } else {
-                return { status: 'critico', message: '🚨 Atraso' };
-            }
-        } catch (error) {
-            return { status: 'normal', message: '✓ No prazo' };
-        }
-    }
-
-    function updatePerformanceStatus(performance) {
-        const statusElement = document.getElementById('performance-status');
-        if (!statusElement) return;
-        
-        const statusConfig = {
-            'excelente': { color: 'text-success-400', icon: '🚀' },
-            'normal': { color: 'text-success-400', icon: '✓' },
-            'atencao': { color: 'text-warning-400', icon: '⚠️' },
-            'critico': { color: 'text-danger-400', icon: '🚨' }
+    function showScannerStatus(message, type = 'info') {
+        const status = document.getElementById('scanner-status');
+        const icons = {
+            info: '📷',
+            success: '✅', 
+            error: '❌'
         };
         
-        const config = statusConfig[performance.status] || statusConfig.normal;
-        
-        statusElement.className = `text-2xl font-bold ${config.color}`;
-        statusElement.innerHTML = `<span>${config.icon} ${performance.message}</span>`;
+        status.querySelector('.status-icon').textContent = icons[type] || icons.info;
+        status.querySelector('.status-text').textContent = message;
+        status.style.display = 'block';
     }
 
-    function updateSmartAlerts() {
-        const alertsContainer = document.getElementById('smart-alerts');
-        if (!alertsContainer) return;
+    function hideScannerStatus() {
+        document.getElementById('scanner-status').style.display = 'none';
+    }
+
+    // --- PATIENT PROCESSING ---
+    function submitManualId() {
+        const input = document.getElementById('patient-id-input');
+        const patientId = input.value.trim().toUpperCase();
         
-        alertsContainer.innerHTML = '';
+        if (!patientId) {
+            showAlert('Digite o ID do paciente', 'warning');
+            input.focus();
+            return;
+        }
         
-        const alerts = generateSmartAlerts();
+        if (patientId.length < 3) {
+            showAlert('ID deve ter pelo menos 3 caracteres', 'warning');
+            input.focus();
+            return;
+        }
         
-        alerts.forEach(alert => {
-            const alertElement = createAlertElement(alert);
-            alertsContainer.appendChild(alertElement);
+        processPatient(patientId);
+    }
+
+    function processPatient(patientId) {
+        pacienteAtual = patientId;
+        
+        // Atualiza display
+        document.getElementById('patient-id-display').textContent = pacienteAtual;
+        document.getElementById('entry-time').textContent = formatTime(new Date());
+        
+        // Marca primeiro tempo
+        stepTimes[0] = new Date();
+        
+        showAlert(`Paciente ${pacienteAtual} identificado!`, 'success');
+        
+        // Avança para próximo step
+        nextStep();
+        
+        console.log('👤 Paciente processado:', pacienteAtual);
+    }
+
+    // --- TIMELINE MANAGEMENT ---
+    function markTimelineStep(stepNumber) {
+        const now = new Date();
+        const timeIndex = stepNumber; // 1-9
+        
+        // Salva o tempo
+        stepTimes[timeIndex] = now;
+        
+        // Atualiza display do tempo
+        const timeElement = document.getElementById(`time-${stepNumber}`);
+        if (timeElement) {
+            timeElement.textContent = `✅ Marcado às ${formatTime(now)}`;
+            timeElement.style.color = '#30D158';
+        }
+        
+        // Calcula duração se não for o primeiro
+        if (stepNumber > 1 && stepTimes[stepNumber - 1]) {
+            const duration = calculateDuration(stepTimes[stepNumber - 1], now);
+            const durationText = ` (Duração: ${formatDuration(duration)})`;
+            timeElement.textContent += durationText;
+        }
+        
+        // Desabilita o botão
+        const button = document.getElementById(`mark-step-${stepNumber}`);
+        button.disabled = true;
+        button.innerHTML = '✅ Marcado';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-primary');
+        
+        // Feedback
+        showAlert(`${stepNames[stepNumber + 2]} marcado!`, 'success');
+        
+        // Vibração
+        if (navigator.vibrate) {
+            navigator.vibrate(300);
+        }
+        
+        // Auto-avança para próximo step após 2 segundos
+        setTimeout(() => {
+            nextStep();
+        }, 2000);
+        
+        console.log(`⏰ Step ${stepNumber} marcado:`, formatTime(now));
+    }
+
+    // --- FINAL FORM ---
+    function validateFinalForm() {
+        const sala = document.getElementById('sala-select').value;
+        const leito = document.getElementById('leito-select').value;
+        const saveBtn = document.getElementById('save-btn');
+        
+        saveBtn.disabled = !(sala && leito);
+        
+        if (sala && leito) {
+            updateFinalSummary();
+        }
+    }
+
+    function updateFinalSummary() {
+        document.getElementById('final-patient-id').textContent = pacienteAtual || '--';
+        
+        if (stepTimes[0] && stepTimes[9]) {
+            const totalDuration = calculateDuration(stepTimes[0], stepTimes[9]);
+            document.getElementById('final-total-time').textContent = formatDuration(totalDuration);
+            document.getElementById('final-start-time').textContent = formatTime(stepTimes[0]);
+            document.getElementById('final-end-time').textContent = formatTime(stepTimes[9]);
+        }
+    }
+
+    async function saveToGoogleSheets() {
+        showLoading(true);
+        
+        try {
+            const data = {
+                patientId: pacienteAtual,
+                sala: document.getElementById('sala-select').value,
+                destino: document.getElementById('leito-select').value,
+                observacoes: document.getElementById('observations').value,
+                stepTimes: Object.fromEntries(
+                    Object.entries(stepTimes).map(([key, value]) => [key, value.toISOString()])
+                ),
+                timestamp: new Date().toISOString(),
+                versao: 'Revolutionary v4.0'
+            };
+            
+            console.log('💾 Enviando dados:', data);
+            
+            if (URL_BACKEND.includes("SEU_SCRIPT_ID_AQUI")) {
+                throw new Error('Configure a URL do Google Apps Script!');
+            }
+            
+            await fetch(URL_BACKEND, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            // Salva backup local
+            saveLocalBackup(data);
+            
+            showLoading(false);
+            showAlert('Dados salvos com sucesso!', 'success');
+            
+            // Avança para sucesso
+            nextStep();
+            
+        } catch (error) {
+            console.error('❌ Erro ao salvar:', error);
+            showLoading(false);
+            showAlert(`Erro: ${error.message}`, 'error');
+        }
+    }
+
+    function saveLocalBackup(data) {
+        try {
+            let history = JSON.parse(localStorage.getItem('hemoflow_history') || '[]');
+            history.push(data);
+            
+            // Mantém apenas os últimos 50
+            if (history.length > 50) {
+                history = history.slice(-50);
+            }
+            
+            localStorage.setItem('hemoflow_history', JSON.stringify(history));
+            localStorage.setItem('hemoflow_last_sync', new Date().toISOString());
+            
+            console.log('💾 Backup local salvo');
+        } catch (error) {
+            console.error('Erro no backup local:', error);
+        }
+    }
+
+    // --- SYSTEM RESET ---
+    function resetSystem() {
+        console.log('🔄 Resetando sistema...');
+        
+        // Para scanner se ativo
+        if (isScanning) {
+            stopScanner();
+        }
+        
+        // Reset estado
+        currentStep = 0;
+        pacienteAtual = null;
+        stepTimes = {};
+        
+        // Reset formulários
+        document.getElementById('patient-id-input').value = '';
+        document.getElementById('sala-select').value = '';
+        document.getElementById('leito-select').value = '';
+        document.getElementById('observations').value = '';
+        
+        // Reset botões timeline
+        for (let i = 1; i <= 9; i++) {
+            const button = document.getElementById(`mark-step-${i}`);
+            const timeElement = document.getElementById(`time-${i}`);
+            
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = `
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar ${stepNames[i + 2]}
+                `;
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-success');
+            }
+            
+            if (timeElement) {
+                timeElement.textContent = 'Aguardando marcação...';
+                timeElement.style.color = '';
+            }
+        }
+        
+        // Volta para welcome
+        showStep(0);
+        
+        showAlert('Sistema resetado!', 'success');
+    }
+
+    // --- UTILITY FUNCTIONS ---
+    function formatTime(date) {
+        return date.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
         });
     }
 
-    function generateSmartAlerts() {
-        const alerts = [];
+    function formatDuration(minutes) {
+        const hrs = Math.floor(minutes / 60);
+        const mins = Math.floor(minutes % 60);
+        const secs = Math.floor((minutes % 1) * 60);
         
-        if (currentStep === 0) return alerts;
-        
-        try {
-            // Alerta de tempo excessivo em uma etapa
-            if (currentStep > 1) {
-                const ultimaEtapa = currentStep - 1;
-                const tempoUltimaEtapa = calcularDuracao(stepTimes[ultimaEtapa], stepTimes[currentStep]);
-                const tempoMedioEtapa = calcularTempoMedioEtapa(ultimaEtapa);
-                
-                if (tempoUltimaEtapa > tempoMedioEtapa * 1.5) {
-                    alerts.push({
-                        type: 'warning',
-                        title: 'Etapa Demorada',
-                        message: `${stepNames[ultimaEtapa - 1]} levou ${formatarDuracao(tempoUltimaEtapa)} (média: ${formatarDuracao(tempoMedioEtapa)})`
-                    });
-                }
-            }
-            
-            // Alerta de procedimento rápido
-            if (currentStep >= 6) {
-                const tempoProcedimento = calcularDuracao(stepTimes[5], stepTimes[6]);
-                const tempoMedioProcedimento = calcularTempoMedioEtapa(5, 6);
-                
-                if (tempoProcedimento < tempoMedioProcedimento * 0.5) {
-                    alerts.push({
-                        type: 'info',
-                        title: 'Procedimento Rápido',
-                        message: `Procedimento realizado em ${formatarDuracao(tempoProcedimento)} - muito eficiente!`
-                    });
-                }
-            }
-            
-            // Recomendações baseadas no horário
-            const horaAtual = new Date().getHours();
-            if (horaAtual >= 17 && currentStep <= 3) {
-                alerts.push({
-                    type: 'info',
-                    title: 'Horário de Pico',
-                    message: 'Fim do dia - considere priorizar etapas críticas'
-                });
-            }
-            
-        } catch (error) {
-            console.error('Erro ao gerar alertas:', error);
+        if (hrs > 0) {
+            return `${hrs}h ${mins}m ${secs}s`;
+        } else {
+            return `${mins}m ${secs}s`;
         }
-        
-        return alerts;
     }
 
-    function createAlertElement(alert) {
-        const div = document.createElement('div');
+    function calculateDuration(start, end) {
+        return (end - start) / 60000; // minutos
+    }
+
+    function showAlert(message, type = 'info') {
+        // Cria toast notification
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
         
-        const typeConfig = {
-            'info': { color: 'border-l-accent-500 bg-accent-500/10', icon: 'ℹ️' },
-            'warning': { color: 'border-l-warning-500 bg-warning-500/10', icon: '⚠️' },
-            'success': { color: 'border-l-success-500 bg-success-500/10', icon: '✅' },
-            'error': { color: 'border-l-danger-500 bg-danger-500/10', icon: '❌' }
+        const icons = {
+            success: '✅',
+            warning: '⚠️',
+            error: '❌',
+            info: 'ℹ️'
         };
         
-        const config = typeConfig[alert.type] || typeConfig.info;
-        
-        div.className = `border-l-4 ${config.color} p-4 rounded-r-lg mb-2`;
-        div.innerHTML = `
-            <div class="flex items-start">
-                <span class="text-xl mr-3">${config.icon}</span>
-                <div>
-                    <h4 class="text-white font-semibold text-sm">${alert.title}</h4>
-                    <p class="text-white/80 text-xs mt-1">${alert.message}</p>
-                </div>
-            </div>
+        toast.innerHTML = `
+            <div class="toast-icon">${icons[type] || icons.info}</div>
+            <div class="toast-content">${message}</div>
+            <div class="toast-close" onclick="this.parentNode.remove()">×</div>
         `;
         
-        return div;
-    }
-
-    // --- CÁLCULOS E ESTATÍSTICAS ---
-    function calcularEstatisticas() {
-        console.log('📊 Calculando estatísticas...');
-        
-        if (Object.keys(stepTimes).length < 2) return;
-        
-        const tempos = Object.values(stepTimes);
-        const primeiroTempo = tempos[0];
-        const ultimoTempo = tempos[tempos.length - 1];
-        
-        // Tempo total
-        const tempoTotal = calcularDuracao(primeiroTempo, ultimoTempo);
-        const totalTimeElement = document.getElementById('total-time');
-        if (totalTimeElement) {
-            totalTimeElement.textContent = formatarDuracao(tempoTotal);
-        }
-        
-        // Tempo de procedimento (etapa 5 a 6)
-        if (stepTimes[5] && stepTimes[6]) {
-            const tempoProcedimento = calcularDuracao(stepTimes[5], stepTimes[6]);
-            const procedureTimeElement = document.getElementById('procedure-time');
-            if (procedureTimeElement) {
-                procedureTimeElement.textContent = formatarDuracao(tempoProcedimento);
-            }
-        }
-        
-        // Tempo de preparação (etapa 2 a 5)
-        if (stepTimes[2] && stepTimes[5]) {
-            const tempoPreparacao = calcularDuracao(stepTimes[2], stepTimes[5]);
-            const setupTimeElement = document.getElementById('setup-time');
-            if (setupTimeElement) {
-                setupTimeElement.textContent = formatarDuracao(tempoPreparacao);
-            }
-        }
-        
-        // Tempo de limpeza (etapa 8 a 9)
-        if (stepTimes[8] && stepTimes[9]) {
-            const tempoLimpeza = calcularDuracao(stepTimes[8], stepTimes[9]);
-            const cleaningTimeElement = document.getElementById('cleaning-time');
-            if (cleaningTimeElement) {
-                cleaningTimeElement.textContent = formatarDuracao(tempoLimpeza);
-            }
-        }
-        
-        // Atualiza tempo total final
-        const finalTotalTimeElement = document.getElementById('final-total-time');
-        if (finalTotalTimeElement) {
-            finalTotalTimeElement.textContent = formatarDuracao(tempoTotal);
-        }
-        
-        // Comparações com histórico
-        updateHistoricalComparisons();
-        
-        console.log('📊 Estatísticas calculadas');
-    }
-
-    function updateHistoricalComparisons() {
-        if (historicalData.length === 0) return;
-        
-        try {
-            const mediaTotal = historicalData.reduce((acc, item) => acc + item.tempoTotal, 0) / historicalData.length;
-            const mediaProcedimento = historicalData.reduce((acc, item) => acc + (item.tempoProcedimento || 0), 0) / historicalData.length;
-            const mediaPreparacao = historicalData.reduce((acc, item) => acc + (item.tempoPreparacao || 0), 0) / historicalData.length;
-            const mediaLimpeza = historicalData.reduce((acc, item) => acc + (item.tempoLimpeza || 0), 0) / historicalData.length;
-            
-            // Atualiza comparações
-            updateComparison('total-time-comparison', mediaTotal);
-            updateComparison('procedure-time-comparison', mediaProcedimento);
-            updateComparison('setup-time-comparison', mediaPreparacao);
-            updateComparison('cleaning-time-comparison', mediaLimpeza);
-            
-        } catch (error) {
-            console.error('Erro ao calcular comparações:', error);
-        }
-    }
-
-    function updateComparison(elementId, mediaHistorica) {
-        const element = document.getElementById(elementId);
-        if (!element || !mediaHistorica) return;
-        
-        const tempoAtual = getCurrentTimeForComparison(elementId);
-        if (!tempoAtual) return;
-        
-        const diferenca = tempoAtual - mediaHistorica;
-        const percentual = Math.round((diferenca / mediaHistorica) * 100);
-        
-        if (Math.abs(percentual) < 5) {
-            element.textContent = 'similar à média';
-            element.className = 'text-xs text-white/60';
-        } else if (percentual > 0) {
-            element.textContent = `+${percentual}% vs média`;
-            element.className = 'text-xs text-warning-400';
-        } else {
-            element.textContent = `${percentual}% vs média`;
-            element.className = 'text-xs text-success-400';
-        }
-    }
-
-    function getCurrentTimeForComparison(elementId) {
-        if (!stepTimes[1]) return null;
-        
-        switch (elementId) {
-            case 'total-time-comparison':
-                if (stepTimes[9]) return calcularDuracao(stepTimes[1], stepTimes[9]);
-                break;
-            case 'procedure-time-comparison':
-                if (stepTimes[5] && stepTimes[6]) return calcularDuracao(stepTimes[5], stepTimes[6]);
-                break;
-            case 'setup-time-comparison':
-                if (stepTimes[2] && stepTimes[5]) return calcularDuracao(stepTimes[2], stepTimes[5]);
-                break;
-            case 'cleaning-time-comparison':
-                if (stepTimes[8] && stepTimes[9]) return calcularDuracao(stepTimes[8], stepTimes[9]);
-                break;
-        }
-        return null;
-    }
-
-    // --- SISTEMA DE NOTIFICAÇÕES ---
-    function showToast(message, type = 'info', duration = 5000) {
-        const toast = createToast(message, type);
+        // Adiciona ao container
         const container = document.getElementById('toast-container');
-        
         if (container) {
             container.appendChild(toast);
             
@@ -763,494 +559,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (toast.parentNode) {
                     toast.remove();
                 }
-            }, duration);
+            }, 5000);
         }
         
-        console.log(`🔔 Toast: ${message} (${type})`);
+        console.log(`🔔 ${type.toUpperCase()}: ${message}`);
     }
 
-    function createToast(message, type) {
-        const div = document.createElement('div');
-        
-        const typeConfig = {
-            'success': { bg: 'bg-success-500', icon: '✅' },
-            'warning': { bg: 'bg-warning-500', icon: '⚠️' },
-            'error': { bg: 'bg-danger-500', icon: '❌' },
-            'info': { bg: 'bg-primary-500', icon: 'ℹ️' }
-        };
-        
-        const config = typeConfig[type] || typeConfig.info;
-        
-        div.className = `${config.bg} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 max-w-md transform transition-all duration-300 slide-in-right`;
-        div.innerHTML = `
-            <span class="text-xl">${config.icon}</span>
-            <span class="flex-1">${message}</span>
-            <button onclick="this.parentNode.remove()" class="text-white/80 hover:text-white transition-colors">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        `;
-        
-        return div;
-    }
-
-    // --- INTEGRAÇÃO GOOGLE SHEETS ---
-    async function finalizarAtendimento() {
-        if (!pacienteAtual || !salaSelect.value || !leitoSelect.value) {
-            showToast('Por favor, complete todas as informações obrigatórias.', 'warning');
-            return;
-        }
-
-        console.log('💾 Iniciando salvamento...');
-        
-        // Mostra loading
-        const saveStatus = document.getElementById('save-status');
-        if (saveStatus) {
-            saveStatus.style.display = 'block';
-        }
-        
-        checkoutBtn.disabled = true;
-        checkoutBtn.innerHTML = '<div class="loading inline-block mr-2"></div> Salvando...';
-
-        // Prepara dados completos
-        const dadosCompletos = {
-            // Dados básicos
-            patientId: pacienteAtual,
-            sala: salaSelect.value,
-            destino: leitoSelect.value,
-            observacoes: document.getElementById('observations')?.value || '',
-            
-            // Timeline completa
-            stepTimes: Object.fromEntries(
-                Object.entries(stepTimes).map(([key, value]) => [key, value.toISOString()])
-            ),
-            totalSteps: currentStep,
-            
-            // Metadados
-            timestamp: new Date().toISOString(),
-            versao: '3.0',
-            dispositivo: navigator.userAgent,
-            
-            // Métricas calculadas
-            metricas: calcularMetricasFinais(),
-            
-            // Analytics
-            analytics: {
-                tempoTotal: stepTimes[1] && stepTimes[9] ? calcularDuracao(stepTimes[1], stepTimes[9]) : null,
-                eficiencia: avaliarEficiencia(),
-                gargalos: identificarGargalos()
-            }
-        };
-
-        console.log('📤 Enviando dados:', dadosCompletos);
-
-        try {
-            // Verifica se a URL foi configurada
-            if (URL_BACKEND.includes("SEU_SCRIPT_ID_AQUI")) {
-                throw new Error('URL do Google Apps Script não configurada! Verifique o script.js');
-            }
-            
-            const response = await fetch(URL_BACKEND, {
-                method: 'POST',
-                mode: 'no-cors', // Necessário para Google Apps Script
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(dadosCompletos)
-            });
-
-            console.log('✅ Dados enviados com sucesso!');
-            
-            // Salva no histórico local
-            salvarHistoricoLocal(dadosCompletos);
-            
-            // Atualiza interface
-            checkoutBtn.innerHTML = '✅ Salvo com Sucesso!';
-            checkoutBtn.classList.remove('primary');
-            checkoutBtn.classList.add('success');
-            
-            if (saveStatus) {
-                saveStatus.style.display = 'none';
-            }
-            
-            showToast(`Dados do paciente ${pacienteAtual} salvos com sucesso!`, 'success');
-            
-            // Mostra opções pós-salvamento
-            mostrarOpcoesPosGravacao();
-            
-        } catch (error) {
-            console.error('❌ Erro ao enviar dados:', error);
-            
-            // Salva localmente como backup
-            salvarBackupLocal(dadosCompletos);
-            
-            checkoutBtn.innerHTML = '❌ Erro - Dados Salvos Localmente';
-            checkoutBtn.disabled = false;
-            
-            if (saveStatus) {
-                saveStatus.style.display = 'none';
-            }
-            
-            showToast('Erro no envio. Dados salvos localmente como backup.', 'warning');
-        }
-    }
-
-    function calcularMetricasFinais() {
-        const metricas = {};
-        
-        if (stepTimes[1] && stepTimes[9]) {
-            metricas.tempoTotal = calcularDuracao(stepTimes[1], stepTimes[9]);
-        }
-        
-        if (stepTimes[5] && stepTimes[6]) {
-            metricas.tempoProcedimento = calcularDuracao(stepTimes[5], stepTimes[6]);
-        }
-        
-        if (stepTimes[2] && stepTimes[5]) {
-            metricas.tempoPreparacao = calcularDuracao(stepTimes[2], stepTimes[5]);
-        }
-        
-        if (stepTimes[8] && stepTimes[9]) {
-            metricas.tempoLimpeza = calcularDuracao(stepTimes[8], stepTimes[9]);
-        }
-        
-        return metricas;
-    }
-
-    function avaliarEficiencia() {
-        if (historicalData.length === 0) return 'normal';
-        
-        const tempoAtual = stepTimes[1] && stepTimes[9] ? 
-            calcularDuracao(stepTimes[1], stepTimes[9]) : null;
-            
-        if (!tempoAtual) return 'incompleto';
-        
-        const mediaHistorica = historicalData.reduce((acc, item) => acc + item.tempoTotal, 0) / historicalData.length;
-        
-        if (tempoAtual < mediaHistorica * 0.8) return 'excelente';
-        if (tempoAtual < mediaHistorica * 1.2) return 'normal';
-        return 'abaixo_media';
-    }
-
-    function identificarGargalos() {
-        const gargalos = [];
-        
-        // Identifica etapas que demoraram muito
-        for (let i = 2; i <= currentStep; i++) {
-            if (stepTimes[i] && stepTimes[i-1]) {
-                const duracao = calcularDuracao(stepTimes[i-1], stepTimes[i]);
-                const mediaEsperada = calcularTempoMedioEtapa(i-1, i);
-                
-                if (duracao > mediaEsperada * 1.5) {
-                    gargalos.push({
-                        etapa: stepNames[i-2],
-                        duracao: duracao,
-                        mediaEsperada: mediaEsperada,
-                        excesso: duracao - mediaEsperada
-                    });
-                }
-            }
-        }
-        
-        return gargalos;
-    }
-
-    function salvarHistoricoLocal(dados) {
-        try {
-            let historico = JSON.parse(localStorage.getItem('hemoflow_historico') || '[]');
-            
-            historico.push({
-                patientId: dados.patientId,
-                timestamp: dados.timestamp,
-                tempoTotal: dados.analytics.tempoTotal,
-                tempoProcedimento: dados.metricas.tempoProcedimento,
-                tempoPreparacao: dados.metricas.tempoPreparacao,
-                tempoLimpeza: dados.metricas.tempoLimpeza,
-                sala: dados.sala,
-                eficiencia: dados.analytics.eficiencia
-            });
-            
-            // Mantém apenas os últimos 100 registros
-            if (historico.length > 100) {
-                historico = historico.slice(-100);
-            }
-            
-            localStorage.setItem('hemoflow_historico', JSON.stringify(historico));
-            
-            console.log('💾 Histórico local atualizado');
-            
-        } catch (error) {
-            console.error('Erro ao salvar histórico local:', error);
-        }
-    }
-
-    function salvarBackupLocal(dados) {
-        try {
-            let backups = JSON.parse(localStorage.getItem('hemoflow_backups') || '[]');
-            
-            backups.push({
-                ...dados,
-                backupTimestamp: new Date().toISOString(),
-                enviado: false
-            });
-            
-            localStorage.setItem('hemoflow_backups', JSON.stringify(backups));
-            
-            console.log('💾 Backup local criado');
-            
-        } catch (error) {
-            console.error('Erro ao criar backup local:', error);
-        }
-    }
-
-    function getHistoricalData() {
-        try {
-            return JSON.parse(localStorage.getItem('hemoflow_historico') || '[]');
-        } catch (error) {
-            console.error('Erro ao carregar histórico:', error);
-            return [];
-        }
-    }
-
-    function mostrarOpcoesPosGravacao() {
-        const opcoes = document.createElement('div');
-        opcoes.className = 'mt-6 space-y-3';
-        opcoes.innerHTML = `
-            <button onclick="resetarAplicativo()" class="action-button primary w-full">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" />
-                </svg>
-                Novo Paciente
-            </button>
-            <button onclick="gerarRelatorio()" class="action-button secondary w-full">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Ver Relatório
-            </button>
-        `;
-        
-        const finalSection = document.getElementById('final-section');
-        if (finalSection) {
-            finalSection.appendChild(opcoes);
-        }
-    }
-
-    // --- FUNÇÕES AUXILIARES ---
-    function calcularDuracao(inicio, fim) {
-        return Math.round((fim - inicio) / 60000 * 100) / 100; // em minutos
-    }
-
-    function formatarDuracao(minutosDecimais) {
-        const minutos = Math.floor(minutosDecimais);
-        const segundos = Math.round((minutosDecimais - minutos) * 60);
-        return `${minutos}:${segundos.toString().padStart(2, '0')}`;
-    }
-
-    function formatarHorario(data) {
-        return data.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-    }
-
-    function calcularTempoMedioAteFase(fase) {
-        if (historicalData.length === 0) return 30; // Fallback padrão
-        
-        // Simula cálculo baseado em dados históricos
-        const baseTime = 45; // tempo base em minutos
-        const faseMultiplier = fase / stepNames.length;
-        return baseTime * faseMultiplier;
-    }
-
-    function calcularTempoMedioEtapa(etapaInicio, etapaFim = null) {
-        // Retorna tempo médio para uma etapa específica
-        const temposBase = {
-            1: 5,   // Chegada
-            2: 10,  // Entrada na sala
-            3: 15,  // Cobertura
-            4: 5,   // Fim cobertura
-            5: 45,  // Procedimento
-            6: 10,  // Fim procedimento
-            7: 5,   // Saída
-            8: 15,  // Limpeza
-            9: 5    // Fim limpeza
-        };
-        
-        if (etapaFim) {
-            // Tempo entre duas etapas
-            return temposBase[etapaFim] - temposBase[etapaInicio];
-        } else {
-            // Tempo de uma etapa específica
-            return temposBase[etapaInicio] || 10;
-        }
-    }
-
-    // --- FUNÇÕES DE SISTEMA ---
-    function verificarBotaoFinalizar() {
-        const salaSelec = salaSelect.value !== '';
-        const leitoSelec = leitoSelect.value !== '';
-        const etapasCompletas = currentStep === stepNames.length;
-        
-        checkoutBtn.disabled = !(salaSelec && leitoSelec && etapasCompletas);
+    function showLoading(show) {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = show ? 'flex' : 'none';
     }
 
     function updateSystemStatus() {
-        const statusElement = document.getElementById('system-status');
-        const lastSyncElement = document.getElementById('last-sync');
+        const statusIcon = document.getElementById('system-status-icon');
+        const statusText = document.getElementById('system-status-text');
         
-        if (statusElement) {
-            // Verifica conectividade
+        if (statusIcon && statusText) {
             if (navigator.onLine) {
-                statusElement.innerHTML = `
-                    <span class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></span>
-                    Sistema Online
-                `;
+                statusIcon.textContent = '🟢';
+                statusText.textContent = 'Sistema Online e Pronto';
             } else {
-                statusElement.innerHTML = `
-                    <span class="w-2 h-2 bg-warning-500 rounded-full mr-2"></span>
-                    Modo Offline
-                `;
-            }
-        }
-        
-        if (lastSyncElement) {
-            // Última sincronização
-            const lastSync = localStorage.getItem('hemoflow_last_sync');
-            if (lastSync) {
-                const lastSyncDate = new Date(lastSync);
-                lastSyncElement.textContent = `Última sync: ${formatarHorario(lastSyncDate)}`;
+                statusIcon.textContent = '🔴';
+                statusText.textContent = 'Modo Offline - Dados serão salvos localmente';
             }
         }
     }
 
-    function updateAnalytics() {
-        // Placeholder para analytics iniciais
-        console.log('📈 Analytics inicializados');
-    }
-
-    function resetarAplicativo() {
-        console.log('🔄 Resetando aplicativo...');
-        
-        // Para analytics
-        stopRealTimeAnalytics();
-        
-        // Para scanner se estiver ativo
-        if (isScanning) {
-            pararScanner();
-        }
-        
-        // Reset do estado
-        pacienteAtual = null;
-        currentStep = 0;
-        stepTimes = {};
-        
-        // Reset da interface
-        patientInfo.style.display = 'none';
-        timelineSection.style.display = 'none';
-        analyticsSection.style.display = 'none';
-        statsSection.style.display = 'none';
-        finalSection.style.display = 'none';
-        
-        // Reset do scanner
-        startScanBtn.innerHTML = `
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
-            </svg>
-            Escanear Pulseira do Paciente
-        `;
-        startScanBtn.disabled = false;
-        startScanBtn.classList.remove('danger');
-        startScanBtn.classList.add('primary');
-        
-        // Reset dos controles
-        nextStepBtn.disabled = true;
-        nextStepBtn.innerHTML = `
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
-            </svg>
-            Próxima Etapa
-        `;
-        nextStepBtn.classList.remove('disabled');
-        nextStepBtn.classList.add('success');
-        
-        checkoutBtn.disabled = true;
-        checkoutBtn.innerHTML = `
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17L4 12" />
-            </svg>
-            Salvar no Google Sheets & Gerar Relatório
-        `;
-        checkoutBtn.classList.remove('success');
-        checkoutBtn.classList.add('primary');
-        
-        // Habilita inputs manuais
-        manualPatientId.disabled = false;
-        manualSubmitBtn.disabled = false;
-        manualPatientId.placeholder = 'Ou digite o ID do paciente...';
-        
-        // Reset da timeline
-        for (let i = 1; i <= stepNames.length; i++) {
-            const stepIndicator = document.getElementById(`step${i}`);
-            const timeElement = document.getElementById(`time${i}`);
-            const durationElement = document.getElementById(`duration${i}`);
-            
-            if (stepIndicator) {
-                stepIndicator.className = 'step-indicator pending';
-                stepIndicator.textContent = i;
-            }
-            
-            if (timeElement) {
-                timeElement.textContent = '--:--:--';
-            }
-            
-            if (durationElement) {
-                durationElement.textContent = '';
-            }
-        }
-        
-        // Reset dos selects
-        salaSelect.value = '';
-        leitoSelect.value = '';
-        const observationsElement = document.getElementById('observations');
-        if (observationsElement) {
-            observationsElement.value = '';
-        }
-        
-        // Reset das estatísticas
-        ['total-time', 'procedure-time', 'setup-time', 'cleaning-time'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = '--';
-            }
-        });
-        
-        // Reset do progresso
-        progressBar.style.width = '0%';
-        progressText.textContent = '0% concluído';
-        currentStepSpan.textContent = 'Etapa 1/9';
-        
-        // Limpa input manual
-        manualPatientId.value = '';
-        
-        showToast('Sistema resetado com sucesso!', 'success');
-        
-        console.log('✅ Reset concluído!');
-    }
-
-    // Função global para relatório
-    window.gerarRelatorio = function() {
-        showToast('Funcionalidade de relatório em desenvolvimento', 'info');
-    };
-
-    // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+    // --- INICIALIZAÇÃO ---
     init();
-
+    
     // Atualiza status periodicamente
     setInterval(updateSystemStatus, 30000);
-
-    console.log('🎉 HemoFlow v3.0 carregado com sucesso!');
+    
+    console.log('🎉 HemoFlow Revolutionary v4.0 carregado!');
 });

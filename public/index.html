@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Título e Metadados do PWA -->
-    <title>HemoFlow - Sistema Avançado de Analytics Hemodinâmico</title>
+    <title>HemoFlow Revolutionary - Sistema Step-by-Step</title>
     <meta name="theme-color" content="#007AFF">
     <link rel="manifest" href="manifest.json">
     
@@ -14,306 +13,398 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@100;200;300;400;500;600;700;800;900&family=SF+Pro+Text:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- CSS Premium -->
+    <!-- CSS Revolutionary -->
     <link href="output.css" rel="stylesheet">
     
-    <!-- Meta tags para SEO -->
-    <meta name="description" content="Sistema premium de tracking hemodinâmico com analytics preditivos e design Apple-level">
-    <meta name="keywords" content="hemodinâmica, tracking, healthcare, analytics, premium, Apple design">
-    <meta name="author" content="HemoFlow Premium Team">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="HemoFlow - Sistema Premium de Tracking Hemodinâmico">
-    <meta property="og:description" content="Interface premium inspirada na Apple para otimização de fluxo hemodinâmico">
-    <meta property="og:type" content="website">
+    <meta name="description" content="Interface revolucionária step-by-step para tracking hemodinâmico">
 </head>
 <body>
 
-    <div class="container mx-auto px-6 py-8 max-w-6xl">
-        
-        <!-- Hero Header Premium -->
-        <header class="hero-header">
-            <div class="hero-logo">
-                <span class="text-4xl">🫀</span>
-            </div>
-            <h1 class="hero-title">HemoFlow</h1>
-            <p class="hero-subtitle">Sistema Avançado de Analytics Hemodinâmico com Interface Premium</p>
-            
-            <!-- Status Bar -->
-            <div class="status-bar">
-                <div class="status-indicator">
-                    <div class="status-dot online" id="system-status-dot"></div>
-                    <span id="system-status" class="text-white font-medium">Sistema Online</span>
-                </div>
-                <span id="last-sync" class="text-white/70 text-sm">Última sync: --</span>
-            </div>
-        </header>
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <div class="progress-circle">
+            <span id="current-step-indicator">1</span>
+        </div>
+    </div>
 
-        <!-- Scanner Section Premium -->
-        <div class="glass-card">
-            <div class="scanner-container">
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- STEP 0: Welcome Screen -->
+    <div id="step-welcome" class="step-container">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">🫀</div>
+                <h1 class="step-title">HemoFlow</h1>
+                <p class="step-subtitle">Sistema Revolucionário de Tracking Hemodinâmico</p>
+            </div>
+            
+            <div class="status-message">
+                <div class="status-icon" id="system-status-icon">🟢</div>
+                <div class="status-text" id="system-status-text">Sistema Online e Pronto</div>
+            </div>
+            
+            <button id="start-btn" class="btn-revolutionary btn-primary">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                Iniciar Novo Atendimento
+            </button>
+        </div>
+    </div>
+
+    <!-- STEP 1: Patient Scanner -->
+    <div id="step-scanner" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h2 class="step-title">Identificar Paciente</h2>
+                <p class="step-subtitle">Escaneie a pulseira ou digite o ID</p>
+            </div>
+            
+            <div class="scanner-interface">
                 <div class="scanner-icon">
-                    <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
                     </svg>
                 </div>
                 
-                <h3 class="text-2xl font-bold text-white mb-3">Scanner de Pulseira Inteligente</h3>
-                <p class="text-white/80 text-lg mb-8">Escaneie o QR Code ou digite o ID do paciente para iniciar o tracking</p>
-                
                 <!-- Camera Preview -->
-                <div id="reader" class="camera-preview mb-8" style="display: none;">
-                    <div id="camera-view"></div>
-                </div>
+                <div id="reader" class="camera-preview" style="display: none;"></div>
                 
                 <!-- Scanner Button -->
-                <button id="start-scan-btn" class="btn-scan mb-6">
+                <button id="scan-btn" class="btn-revolutionary btn-primary mb-8">
                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5C3 3.89543 3.89543 3 5 3H7M17 3H19C20.1046 3 21 3.89543 21 5V7M21 17V19C21 20.1046 20.1046 21 19 21H17M7 21H5C3.89543 21 3 20.1046 3 19V17M12 8V16M8 12H16" />
                     </svg>
-                    Ativar Scanner de Pulseira
+                    Ativar Scanner
                 </button>
                 
-                <!-- Input Manual Premium -->
-                <div class="input-manual">
-                    <input type="text" id="manual-patient-id" 
-                           placeholder="Ou digite o ID do paciente..." 
-                           class="form-input">
-                    <button id="manual-submit-btn" class="btn-primary">
+                <!-- Manual Input -->
+                <div class="input-group">
+                    <label class="input-label">Ou digite o ID do paciente:</label>
+                    <input type="text" 
+                           id="patient-id-input" 
+                           class="input-field" 
+                           placeholder="Ex: PAC001" 
+                           maxlength="20">
+                </div>
+                
+                <div class="input-buttons">
+                    <button id="manual-submit-btn" class="btn-revolutionary btn-success flex-1">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
                         </svg>
-                        Confirmar
+                        Confirmar ID
                     </button>
                 </div>
                 
-                <!-- Status do Scanner -->
-                <div id="scanner-status" class="mt-6 text-center text-white/70" style="display: none;">
-                    <div class="loading-spinner inline-block mr-3"></div>
-                    Inicializando câmera traseira...
+                <!-- Scanner Status -->
+                <div id="scanner-status" class="status-message mt-6" style="display: none;">
+                    <div class="status-icon">📷</div>
+                    <div class="status-text">Câmera inicializando...</div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Patient Info Premium -->
-        <div id="patient-info" class="patient-card" style="display: none;">
-            <h3 class="text-2xl font-bold text-white mb-4">👤 Paciente Identificado</h3>
-            <div class="patient-id" id="patient-id">AGUARDANDO...</div>
+    <!-- STEP 2: Patient Confirmed -->
+    <div id="step-patient" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">✓</div>
+                <h2 class="step-title">Paciente Identificado</h2>
+                <p class="step-subtitle">Pronto para iniciar o tracking</p>
+            </div>
             
-            <div class="patient-stats">
-                <div class="patient-stat">
-                    <div class="patient-stat-label">Hora de Entrada</div>
-                    <div class="patient-stat-value" id="entry-time">--:--</div>
-                </div>
-                <div class="patient-stat">
-                    <div class="patient-stat-label">Status Atual</div>
-                    <div class="patient-stat-value text-green-400">Em Atendimento</div>
+            <div class="patient-showcase">
+                <div class="patient-id-display" id="patient-id-display">PAC001</div>
+                
+                <div class="patient-stats">
+                    <div class="patient-stat">
+                        <div class="patient-stat-label">Hora de Entrada</div>
+                        <div class="patient-stat-value" id="entry-time">--:--</div>
+                    </div>
+                    <div class="patient-stat">
+                        <div class="patient-stat-label">Status</div>
+                        <div class="patient-stat-value text-green-400">Iniciando</div>
+                    </div>
                 </div>
             </div>
+            
+            <button id="start-timeline-btn" class="btn-revolutionary btn-primary mt-8">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Iniciar Timeline
+            </button>
         </div>
+    </div>
 
-        <!-- Timeline Section Premium -->
-        <div class="glass-card" id="timeline-section" style="display: none;">
-            <div class="flex items-center justify-between mb-8">
-                <h2 class="text-3xl font-bold text-white">⏱️ Timeline do Procedimento</h2>
-                <div class="liquid-glass rounded-xl px-4 py-2">
-                    <span id="current-step" class="text-white font-semibold">Etapa 1/9</span>
-                </div>
+    <!-- STEP 3: Timeline Step 1 - Chegada na Hemodinâmica -->
+    <div id="step-timeline-1" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <h2 class="step-title">Chegada na Hemodinâmica</h2>
+                <p class="step-subtitle">Marque quando o paciente chegar</p>
             </div>
             
-            <!-- Progress Bar Premium -->
-            <div class="timeline-progress">
-                <div class="timeline-progress-bar">
-                    <div id="progress-bar" class="timeline-progress-fill" style="width: 0%"></div>
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🚪</div>
+                <h3 class="timeline-step-title">Chegada na Hemodinâmica</h3>
+                <p class="timeline-step-description">Paciente chegou ao setor de hemodinâmica</p>
+                
+                <div class="timeline-step-time" id="time-1">
+                    Aguardando marcação...
                 </div>
-                <div class="text-center text-white/80 text-lg mt-3">
-                    <span id="progress-text">0% concluído</span>
-                </div>
-            </div>
-            
-            <div class="timeline-container">
-                <!-- Etapa 1 -->
-                <div class="timeline-step" data-step="1">
-                    <div class="step-indicator pending" id="step1">1</div>
-                    <div class="step-content">
-                        <div class="step-title">🚪 Chegada na Hemodinâmica</div>
-                        <div class="step-time" id="time1">--:--:--</div>
-                        <div class="step-duration" id="duration1"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 2 -->
-                <div class="timeline-step" data-step="2">
-                    <div class="step-indicator pending" id="step2">2</div>
-                    <div class="step-content">
-                        <div class="step-title">🏥 Entrada na Sala</div>
-                        <div class="step-time" id="time2">--:--:--</div>
-                        <div class="step-duration" id="duration2"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 3 -->
-                <div class="timeline-step" data-step="3">
-                    <div class="step-indicator pending" id="step3">3</div>
-                    <div class="step-content">
-                        <div class="step-title">🛡️ Início da Cobertura</div>
-                        <div class="step-time" id="time3">--:--:--</div>
-                        <div class="step-duration" id="duration3"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 4 -->
-                <div class="timeline-step" data-step="4">
-                    <div class="step-indicator pending" id="step4">4</div>
-                    <div class="step-content">
-                        <div class="step-title">✅ Término da Cobertura</div>
-                        <div class="step-time" id="time4">--:--:--</div>
-                        <div class="step-duration" id="duration4"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 5 -->
-                <div class="timeline-step" data-step="5">
-                    <div class="step-indicator pending" id="step5">5</div>
-                    <div class="step-content">
-                        <div class="step-title">🔬 Início do Procedimento</div>
-                        <div class="step-time" id="time5">--:--:--</div>
-                        <div class="step-duration" id="duration5"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 6 -->
-                <div class="timeline-step" data-step="6">
-                    <div class="step-indicator pending" id="step6">6</div>
-                    <div class="step-content">
-                        <div class="step-title">✨ Término do Procedimento</div>
-                        <div class="step-time" id="time6">--:--:--</div>
-                        <div class="step-duration" id="duration6"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 7 -->
-                <div class="timeline-step" data-step="7">
-                    <div class="step-indicator pending" id="step7">7</div>
-                    <div class="step-content">
-                        <div class="step-title">🚪 Saída da Sala</div>
-                        <div class="step-time" id="time7">--:--:--</div>
-                        <div class="step-duration" id="duration7"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 8 -->
-                <div class="timeline-step" data-step="8">
-                    <div class="step-indicator pending" id="step8">8</div>
-                    <div class="step-content">
-                        <div class="step-title">🧽 Início da Limpeza</div>
-                        <div class="step-time" id="time8">--:--:--</div>
-                        <div class="step-duration" id="duration8"></div>
-                    </div>
-                </div>
-
-                <!-- Etapa 9 -->
-                <div class="timeline-step" data-step="9">
-                    <div class="step-indicator pending" id="step9">9</div>
-                    <div class="step-content">
-                        <div class="step-title">🎯 Término da Limpeza</div>
-                        <div class="step-time" id="time9">--:--:--</div>
-                        <div class="step-duration" id="duration9"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Controles Premium -->
-            <div class="flex gap-4 mt-8">
-                <button class="btn-success flex-1" id="next-step-btn" disabled>
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
+                
+                <button id="mark-step-1" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Próxima Etapa
-                </button>
-                <button class="btn-danger" id="reset-btn">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" />
-                    </svg>
-                    Resetar
+                    Marcar Chegada
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Analytics Premium -->
-        <div class="glass-card" id="analytics-section" style="display: none;">
-            <h2 class="text-3xl font-bold text-white mb-8">🤖 Analytics Preditivos</h2>
-            
-            <div class="analytics-grid">
-                <!-- Previsão de Tempo -->
-                <div class="analytics-card">
-                    <div class="analytics-icon">⏰</div>
-                    <h4 class="analytics-title">Previsão de Conclusão</h4>
-                    <p class="analytics-subtitle">Baseado em machine learning</p>
-                    <div class="analytics-value" id="predicted-completion">--:--</div>
-                </div>
-                
-                <!-- Status de Performance -->
-                <div class="analytics-card">
-                    <div class="analytics-icon">📊</div>
-                    <h4 class="analytics-title">Performance em Tempo Real</h4>
-                    <p class="analytics-subtitle">vs. média histórica</p>
-                    <div class="analytics-value" id="performance-status">
-                        <span class="text-green-400">✓ Excelente</span>
-                    </div>
-                </div>
+    <!-- STEP 4: Timeline Step 2 - Entrada na Sala -->
+    <div id="step-timeline-2" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">4</div>
+                <h2 class="step-title">Entrada na Sala</h2>
+                <p class="step-subtitle">Paciente entrou na sala de procedimento</p>
             </div>
             
-            <!-- Alertas Inteligentes -->
-            <div class="alerts-container" id="smart-alerts">
-                <!-- Os alertas serão inseridos dinamicamente aqui -->
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🏥</div>
+                <h3 class="timeline-step-title">Entrada na Sala</h3>
+                <p class="timeline-step-description">Paciente foi direcionado para a sala</p>
+                
+                <div class="timeline-step-time" id="time-2">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-2" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Entrada na Sala
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Stats Dashboard Premium -->
-        <div class="glass-card" id="stats-section" style="display: none;">
-            <h2 class="text-3xl font-bold text-white mb-8">📊 Métricas Avançadas</h2>
+    <!-- STEP 5: Timeline Step 3 - Início da Cobertura -->
+    <div id="step-timeline-3" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">5</div>
+                <h2 class="step-title">Início da Cobertura</h2>
+                <p class="step-subtitle">Preparação e cobertura iniciada</p>
+            </div>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">⏱️</div>
-                    <div class="stat-label">Tempo Total</div>
-                    <div class="stat-value" id="total-time">--</div>
-                    <div class="stat-comparison" id="total-time-comparison">vs. média: --</div>
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🛡️</div>
+                <h3 class="timeline-step-title">Início da Cobertura</h3>
+                <p class="timeline-step-description">Equipe iniciou preparação e cobertura</p>
+                
+                <div class="timeline-step-time" id="time-3">
+                    Aguardando marcação...
                 </div>
                 
-                <div class="stat-card">
-                    <div class="stat-icon">🔬</div>
-                    <div class="stat-label">Procedimento</div>
-                    <div class="stat-value" id="procedure-time">--</div>
-                    <div class="stat-comparison" id="procedure-time-comparison">vs. média: --</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">⚙️</div>
-                    <div class="stat-label">Preparação</div>
-                    <div class="stat-value" id="setup-time">--</div>
-                    <div class="stat-comparison" id="setup-time-comparison">vs. média: --</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">🧽</div>
-                    <div class="stat-label">Limpeza</div>
-                    <div class="stat-value" id="cleaning-time">--</div>
-                    <div class="stat-comparison" id="cleaning-time-comparison">vs. média: --</div>
-                </div>
+                <button id="mark-step-3" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Início da Cobertura
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Final Actions Premium -->
-        <div class="glass-card" id="final-section" style="display: none;">
-            <h2 class="text-3xl font-bold text-white mb-8">✅ Finalizar Atendimento</h2>
+    <!-- STEP 6: Timeline Step 4 - Término da Cobertura -->
+    <div id="step-timeline-4" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">6</div>
+                <h2 class="step-title">Término da Cobertura</h2>
+                <p class="step-subtitle">Cobertura finalizada</p>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Seleção de Sala -->
-                <div class="form-group">
-                    <label for="sala-select" class="form-label">🏥 Sala de Procedimento</label>
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">✅</div>
+                <h3 class="timeline-step-title">Término da Cobertura</h3>
+                <p class="timeline-step-description">Preparação e cobertura concluídas</p>
+                
+                <div class="timeline-step-time" id="time-4">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-4" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Término da Cobertura
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 7: Timeline Step 5 - Início do Procedimento -->
+    <div id="step-timeline-5" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">7</div>
+                <h2 class="step-title">Início do Procedimento</h2>
+                <p class="step-subtitle">Procedimento principal iniciado</p>
+            </div>
+            
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🔬</div>
+                <h3 class="timeline-step-title">Início do Procedimento</h3>
+                <p class="timeline-step-description">Procedimento hemodinâmico principal</p>
+                
+                <div class="timeline-step-time" id="time-5">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-5" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Início do Procedimento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 8: Timeline Step 6 - Término do Procedimento -->
+    <div id="step-timeline-6" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">8</div>
+                <h2 class="step-title">Término do Procedimento</h2>
+                <p class="step-subtitle">Procedimento concluído com sucesso</p>
+            </div>
+            
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">✨</div>
+                <h3 class="timeline-step-title">Término do Procedimento</h3>
+                <p class="timeline-step-description">Procedimento hemodinâmico finalizado</p>
+                
+                <div class="timeline-step-time" id="time-6">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-6" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Término do Procedimento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 9: Timeline Step 7 - Saída da Sala -->
+    <div id="step-timeline-7" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">9</div>
+                <h2 class="step-title">Saída da Sala</h2>
+                <p class="step-subtitle">Paciente deixou a sala</p>
+            </div>
+            
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🚪</div>
+                <h3 class="timeline-step-title">Saída da Sala</h3>
+                <p class="timeline-step-description">Paciente foi retirado da sala</p>
+                
+                <div class="timeline-step-time" id="time-7">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-7" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Saída da Sala
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 10: Timeline Step 8 - Início da Limpeza -->
+    <div id="step-timeline-8" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">10</div>
+                <h2 class="step-title">Início da Limpeza</h2>
+                <p class="step-subtitle">Limpeza da sala iniciada</p>
+            </div>
+            
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🧽</div>
+                <h3 class="timeline-step-title">Início da Limpeza</h3>
+                <p class="timeline-step-description">Equipe iniciou limpeza da sala</p>
+                
+                <div class="timeline-step-time" id="time-8">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-8" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Início da Limpeza
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 11: Timeline Step 9 - Término da Limpeza -->
+    <div id="step-timeline-9" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">11</div>
+                <h2 class="step-title">Término da Limpeza</h2>
+                <p class="step-subtitle">Limpeza concluída</p>
+            </div>
+            
+            <div class="timeline-step-card">
+                <div class="timeline-step-icon">🎯</div>
+                <h3 class="timeline-step-title">Término da Limpeza</h3>
+                <p class="timeline-step-description">Sala limpa e pronta para próximo paciente</p>
+                
+                <div class="timeline-step-time" id="time-9">
+                    Aguardando marcação...
+                </div>
+                
+                <button id="mark-step-9" class="btn-revolutionary btn-success">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Marcar Término da Limpeza
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 12: Final Form -->
+    <div id="step-final" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">📋</div>
+                <h2 class="step-title">Finalizar Atendimento</h2>
+                <p class="step-subtitle">Complete as informações finais</p>
+            </div>
+            
+            <div class="final-form">
+                <div class="form-section">
+                    <h3 class="form-title">🏥 Informações da Sala</h3>
                     <select id="sala-select" class="form-select">
                         <option value="">Selecione a sala...</option>
                         <option value="Sala 1">Sala 1 - Hemodinâmica Principal</option>
@@ -324,9 +415,8 @@
                     </select>
                 </div>
                 
-                <!-- Destino do Paciente -->
-                <div class="form-group">
-                    <label for="leito-select" class="form-label">🏃‍♂️ Destino do Paciente</label>
+                <div class="form-section">
+                    <h3 class="form-title">🏃‍♂️ Destino do Paciente</h3>
                     <select id="leito-select" class="form-select">
                         <option value="">Selecione o destino...</option>
                         <option value="Recuperação 1">Recuperação 1</option>
@@ -338,50 +428,74 @@
                         <option value="Alta Hospitalar">Alta Hospitalar</option>
                     </select>
                 </div>
-            </div>
-            
-            <!-- Observações -->
-            <div class="form-group">
-                <label for="observations" class="form-label">📝 Observações Clínicas</label>
-                <textarea id="observations" 
-                          placeholder="Observações sobre o procedimento, complicações, ou notas especiais..."
-                          class="form-textarea"></textarea>
-            </div>
-            
-            <!-- Resumo Final Premium -->
-            <div class="liquid-glass rounded-2xl p-6 mb-8">
-                <h3 class="text-xl font-bold text-white mb-4">📋 Resumo do Atendimento</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex justify-between">
-                        <span class="text-white/70">Paciente:</span>
-                        <span class="text-white font-semibold" id="final-patient-id">--</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-white/70">Duração Total:</span>
-                        <span class="text-white font-semibold" id="final-total-time">--</span>
+                
+                <div class="form-section">
+                    <h3 class="form-title">📝 Observações Clínicas</h3>
+                    <textarea id="observations" 
+                              class="form-textarea" 
+                              placeholder="Observações sobre o procedimento, complicações, ou notas especiais..."></textarea>
+                </div>
+                
+                <div class="summary-card">
+                    <h3 class="summary-title">📊 Resumo do Atendimento</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Paciente:</span>
+                            <span class="summary-value" id="final-patient-id">--</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Duração Total:</span>
+                            <span class="summary-value" id="final-total-time">--</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Início:</span>
+                            <span class="summary-value" id="final-start-time">--</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Término:</span>
+                            <span class="summary-value" id="final-end-time">--</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Botão de Salvar Premium -->
-            <button class="btn-primary w-full" id="checkout-btn" disabled>
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <button id="save-btn" class="btn-revolutionary btn-primary" disabled>
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17L4 12" />
                 </svg>
-                Salvar no Google Sheets & Gerar Relatório
+                Salvar no Google Sheets
             </button>
+        </div>
+    </div>
+
+    <!-- STEP 13: Success -->
+    <div id="step-success" class="step-container" style="display: none;">
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">✅</div>
+                <h2 class="step-title">Atendimento Concluído!</h2>
+                <p class="step-subtitle">Dados salvos com sucesso</p>
+            </div>
             
-            <!-- Status de Salvamento -->
-            <div id="save-status" class="text-center text-white/70 text-lg mt-6" style="display: none;">
-                <div class="loading-spinner inline-block mr-3"></div>
-                Salvando dados no sistema...
+            <div class="status-message">
+                <div class="status-icon">🎉</div>
+                <div class="status-text">Todos os dados foram salvos no Google Sheets</div>
+            </div>
+            
+            <div class="input-buttons">
+                <button id="new-patient-btn" class="btn-revolutionary btn-primary flex-1">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Novo Paciente
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Toast Container -->
-        <div id="toast-container" class="toast-container">
-            <!-- Notificações serão inseridas aqui dinamicamente -->
-        </div>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
     </div>
 
     <!-- Scripts -->
@@ -393,12 +507,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('SW registrado:', registration);
-                    })
-                    .catch(error => {
-                        console.log('SW falhou:', error);
-                    });
+                    .then(registration => console.log('SW registrado:', registration))
+                    .catch(error => console.log('SW falhou:', error));
             });
         }
     </script>
