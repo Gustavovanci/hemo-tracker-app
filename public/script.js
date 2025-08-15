@@ -2,11 +2,12 @@
   ARQUIVO: script.js
   -------------------
   HemoFlow v3.0 - Sistema Avançado com Analytics Preditivos
-  - Correção de problemas de câmera
+  - Câmera traseira corrigida
+  - Design moderno e responsivo
   - Analytics em tempo real
   - Integração robusta com Google Sheets
   - Sistema de notificações inteligentes
-  - Previsões baseadas em IA
+  - Previsões baseadas em dados históricos
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SELETORES DO DOM ---
     const startScanBtn = document.getElementById('start-scan-btn');
     const readerDiv = document.getElementById('reader');
-    const cameraView = document.getElementById('camera-view');
     const patientInfo = document.getElementById('patient-info');
     const patientIdSpan = document.getElementById('patient-id');
     const timelineSection = document.getElementById('timeline-section');
@@ -46,12 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let historicalData = getHistoricalData();
     let analyticsInterval = null;
     
-    // Configuração da câmera
+    // Configuração da câmera otimizada para traseira
     const cameraConfig = {
         fps: 10,
-        qrbox: { width: 280, height: 180 },
+        qrbox: { width: 280, height: 200 },
         aspectRatio: 1.0,
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true
     };
 
     // Nomes das etapas
@@ -101,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Inicialização concluída');
     }
 
-    // --- LÓGICA DO SCANNER CORRIGIDA ---
+    // --- LÓGICA DO SCANNER COM CÂMERA TRASEIRA ---
     async function toggleScanner() {
         if (isScanning) {
             await pararScanner();
@@ -111,23 +113,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function iniciarScanner() {
-        console.log('📷 Iniciando scanner...');
+        console.log('📷 Iniciando scanner com câmera traseira...');
         
         try {
             // Mostra status de carregamento
             scannerStatus.style.display = 'block';
-            scannerStatus.innerHTML = '<div class="loading inline-block mr-2"></div>Inicializando câmera...';
+            scannerStatus.innerHTML = '<div class="loading inline-block mr-2"></div>Acessando câmera traseira...';
             
-            // Verifica permissões
+            // Verifica se o navegador suporta câmera
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('Câmera não disponível neste dispositivo');
+                throw new Error('Câmera não disponível neste navegador');
             }
             
-            // Solicita permissão explícita
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop()); // Para o stream de teste
+            // Solicita permissão para câmera traseira
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                stream.getTracks().forEach(track => track.stop()); // Para o stream de teste
+            } catch (permissionError) {
+                console.warn('Erro de permissão, tentando sem constraints:', permissionError);
+            }
             
-            // Inicializa o scanner
+            // Inicializa o HTML5QrCode
             readerDiv.style.display = 'block';
             html5QrCode = new Html5Qrcode("reader");
             
@@ -136,26 +144,47 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('📱 Câmeras encontradas:', cameras.length);
             
             if (cameras.length === 0) {
-                throw new Error('Nenhuma câmera encontrada');
+                throw new Error('Nenhuma câmera encontrada no dispositivo');
             }
             
-            // Preferencialmente câmera traseira
-            let cameraId = cameras[0].id;
-            const backCamera = cameras.find(camera => 
-                camera.label.toLowerCase().includes('back') || 
-                camera.label.toLowerCase().includes('rear') ||
-                camera.label.toLowerCase().includes('environment')
-            );
+            // Encontra a câmera traseira
+            let selectedCamera = null;
             
-            if (backCamera) {
-                cameraId = backCamera.id;
-                console.log('📸 Usando câmera traseira:', backCamera.label);
+            // Estratégias para encontrar câmera traseira
+            const backCameraKeywords = ['back', 'rear', 'environment', 'facing back', 'camera2'];
+            
+            // 1. Procura por palavras-chave no label
+            selectedCamera = cameras.find(camera => {
+                const label = camera.label.toLowerCase();
+                return backCameraKeywords.some(keyword => label.includes(keyword));
+            });
+            
+            // 2. Se não encontrou, usa a última câmera (geralmente traseira)
+            if (!selectedCamera && cameras.length > 1) {
+                selectedCamera = cameras[cameras.length - 1];
             }
+            
+            // 3. Fallback para primeira câmera
+            if (!selectedCamera) {
+                selectedCamera = cameras[0];
+            }
+            
+            console.log('📸 Câmera selecionada:', selectedCamera.label);
+            
+            // Configuração de constraints para forçar câmera traseira
+            const constraints = {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            };
             
             // Inicia o scanner
             await html5QrCode.start(
-                cameraId,
-                cameraConfig,
+                selectedCamera.id,
+                {
+                    ...cameraConfig,
+                    videoConstraints: constraints
+                },
                 onScanSuccess,
                 onScanFailure
             );
@@ -167,20 +196,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 </svg>
                 Parar Scanner
             `;
+            startScanBtn.classList.add('danger');
+            startScanBtn.classList.remove('primary');
             
             scannerStatus.innerHTML = '<span class="text-success-400">✓ Scanner ativo - aponte para o QR Code</span>';
+            
+            // Adiciona vibração se disponível
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
             
             console.log('✅ Scanner iniciado com sucesso');
             
         } catch (error) {
             console.error('❌ Erro ao iniciar scanner:', error);
             
-            scannerStatus.innerHTML = `<span class="text-danger-400">❌ ${error.message}</span>`;
+            const errorMessages = {
+                'NotAllowedError': 'Permissão de câmera negada. Permita o acesso e tente novamente.',
+                'NotFoundError': 'Nenhuma câmera encontrada no dispositivo.',
+                'NotReadableError': 'Câmera está sendo usada por outro aplicativo.',
+                'OverconstrainedError': 'Câmera não atende aos requisitos solicitados.',
+                'SecurityError': 'Acesso à câmera bloqueado por questões de segurança.'
+            };
+            
+            const userMessage = errorMessages[error.name] || error.message || 'Erro desconhecido na câmera';
+            
+            scannerStatus.innerHTML = `<span class="text-danger-400">❌ ${userMessage}</span>`;
             
             showToast('Erro na câmera. Use o input manual abaixo.', 'warning');
             
             // Focus no input manual como fallback
             manualPatientId.focus();
+            manualPatientId.placeholder = 'Digite o ID do paciente (câmera indisponível)';
         }
     }
 
@@ -204,6 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </svg>
                 Escanear Pulseira do Paciente
             `;
+            startScanBtn.classList.remove('danger');
+            startScanBtn.classList.add('primary');
             
             console.log('✅ Scanner parado');
             
@@ -213,10 +262,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onScanSuccess(decodedText, decodedResult) {
-        console.log(`✅ Código escaneado: ${decodedText}`);
+        console.log(`✅ QR Code escaneado: ${decodedText}`);
         
         // Para o scanner automaticamente
         pararScanner();
+        
+        // Adiciona vibração de sucesso
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+        }
         
         // Processa o paciente
         processarPaciente(decodedText);
@@ -225,8 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onScanFailure(error) {
-        // Ignora erros de scan frequentes para não poluir o console
-        // console.log('Scan failed:', error);
+        // Ignora erros frequentes de scan para não poluir o console
     }
 
     function handleManualInput() {
@@ -234,6 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!patientId) {
             showToast('Digite o ID do paciente', 'warning');
+            manualPatientId.focus();
+            return;
+        }
+        
+        // Validação básica do ID
+        if (patientId.length < 3) {
+            showToast('ID do paciente deve ter pelo menos 3 caracteres', 'warning');
             manualPatientId.focus();
             return;
         }
@@ -246,14 +306,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processarPaciente(patientId) {
-        pacienteAtual = patientId;
+        // Sanitiza o ID do paciente
+        pacienteAtual = patientId.toUpperCase().trim();
         patientIdSpan.textContent = pacienteAtual;
         
         // Atualiza informações do paciente
         document.getElementById('entry-time').textContent = formatarHorario(new Date());
         document.getElementById('final-patient-id').textContent = pacienteAtual;
         
-        // Mostra seções
+        // Mostra seções relevantes
         patientInfo.style.display = 'block';
         timelineSection.style.display = 'block';
         analyticsSection.style.display = 'block';
@@ -261,6 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Atualiza interface
         startScanBtn.disabled = true;
         nextStepBtn.disabled = false;
+        manualPatientId.disabled = true;
+        manualSubmitBtn.disabled = true;
         
         // Ativa primeira etapa
         ativarEtapa(1);
@@ -284,9 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13L9 17L19 7" />
                     </svg>
-                    ${stepNames[numeroEtapa - 1]}
+                    Marcar: ${stepNames[numeroEtapa - 1]}
                 `;
             }
+            
+            // Scroll suave para a etapa ativa
+            stepIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
             // Atualiza indicadores de progresso
             updateProgress();
@@ -325,6 +391,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
+            // Adiciona vibração de confirmação
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+            
             // Atualiza analytics
             updateRealTimeAnalytics();
             
@@ -335,6 +406,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Todas as etapas concluídas
                 nextStepBtn.disabled = true;
                 nextStepBtn.innerHTML = '✅ Todas as Etapas Concluídas';
+                nextStepBtn.classList.remove('success');
+                nextStepBtn.classList.add('disabled');
                 
                 // Mostra seções finais
                 statsSection.style.display = 'block';
@@ -363,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentStepSpan.textContent = `Etapa ${currentStep + 1}/${stepNames.length}`;
     }
 
-    // --- ANALYTICS PREDITIVOS (NOVO) ---
+    // --- ANALYTICS PREDITIVOS ---
     function startRealTimeAnalytics() {
         console.log('🤖 Iniciando analytics em tempo real...');
         
@@ -387,7 +460,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Previsão de conclusão baseada no histórico
         const previsao = calcularPrevisaoConlusao();
-        document.getElementById('predicted-completion').textContent = previsao;
+        const previsaoElement = document.getElementById('predicted-completion');
+        if (previsaoElement) {
+            previsaoElement.textContent = previsao;
+        }
         
         // Status de performance
         const performance = avaliarPerformance();
@@ -449,6 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePerformanceStatus(performance) {
         const statusElement = document.getElementById('performance-status');
+        if (!statusElement) return;
         
         const statusConfig = {
             'excelente': { color: 'text-success-400', icon: '🚀' },
@@ -465,6 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSmartAlerts() {
         const alertsContainer = document.getElementById('smart-alerts');
+        if (!alertsContainer) return;
+        
         alertsContainer.innerHTML = '';
         
         const alerts = generateSmartAlerts();
@@ -539,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const config = typeConfig[alert.type] || typeConfig.info;
         
-        div.className = `border-l-4 ${config.color} p-4 rounded-r-lg`;
+        div.className = `border-l-4 ${config.color} p-4 rounded-r-lg mb-2`;
         div.innerHTML = `
             <div class="flex items-start">
                 <span class="text-xl mr-3">${config.icon}</span>
@@ -553,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     }
 
-    // --- CÁLCULOS E ESTATÍSTICAS APRIMORADOS ---
+    // --- CÁLCULOS E ESTATÍSTICAS ---
     function calcularEstatisticas() {
         console.log('📊 Calculando estatísticas...');
         
@@ -565,28 +644,43 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Tempo total
         const tempoTotal = calcularDuracao(primeiroTempo, ultimoTempo);
-        document.getElementById('total-time').textContent = formatarDuracao(tempoTotal);
+        const totalTimeElement = document.getElementById('total-time');
+        if (totalTimeElement) {
+            totalTimeElement.textContent = formatarDuracao(tempoTotal);
+        }
         
         // Tempo de procedimento (etapa 5 a 6)
         if (stepTimes[5] && stepTimes[6]) {
             const tempoProcedimento = calcularDuracao(stepTimes[5], stepTimes[6]);
-            document.getElementById('procedure-time').textContent = formatarDuracao(tempoProcedimento);
+            const procedureTimeElement = document.getElementById('procedure-time');
+            if (procedureTimeElement) {
+                procedureTimeElement.textContent = formatarDuracao(tempoProcedimento);
+            }
         }
         
         // Tempo de preparação (etapa 2 a 5)
         if (stepTimes[2] && stepTimes[5]) {
             const tempoPreparacao = calcularDuracao(stepTimes[2], stepTimes[5]);
-            document.getElementById('setup-time').textContent = formatarDuracao(tempoPreparacao);
+            const setupTimeElement = document.getElementById('setup-time');
+            if (setupTimeElement) {
+                setupTimeElement.textContent = formatarDuracao(tempoPreparacao);
+            }
         }
         
         // Tempo de limpeza (etapa 8 a 9)
         if (stepTimes[8] && stepTimes[9]) {
             const tempoLimpeza = calcularDuracao(stepTimes[8], stepTimes[9]);
-            document.getElementById('cleaning-time').textContent = formatarDuracao(tempoLimpeza);
+            const cleaningTimeElement = document.getElementById('cleaning-time');
+            if (cleaningTimeElement) {
+                cleaningTimeElement.textContent = formatarDuracao(tempoLimpeza);
+            }
         }
         
         // Atualiza tempo total final
-        document.getElementById('final-total-time').textContent = formatarDuracao(tempoTotal);
+        const finalTotalTimeElement = document.getElementById('final-total-time');
+        if (finalTotalTimeElement) {
+            finalTotalTimeElement.textContent = formatarDuracao(tempoTotal);
+        }
         
         // Comparações com histórico
         updateHistoricalComparisons();
@@ -637,7 +731,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getCurrentTimeForComparison(elementId) {
-        // Retorna o tempo atual baseado no tipo de comparação
         if (!stepTimes[1]) return null;
         
         switch (elementId) {
@@ -657,70 +750,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    // --- FUNÇÕES AUXILIARES ---
-    function calcularDuracao(inicio, fim) {
-        return Math.round((fim - inicio) / 60000 * 100) / 100; // em minutos
-    }
-
-    function formatarDuracao(minutosDecimais) {
-        const minutos = Math.floor(minutosDecimais);
-        const segundos = Math.round((minutosDecimais - minutos) * 60);
-        return `${minutos}:${segundos.toString().padStart(2, '0')}`;
-    }
-
-    function formatarHorario(data) {
-        return data.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-    }
-
-    function calcularTempoMedioAteFase(fase) {
-        if (historicalData.length === 0) return 30; // Fallback padrão
-        
-        // Simula cálculo baseado em dados históricos
-        const baseTime = 45; // tempo base em minutos
-        const faseMultiplier = fase / stepNames.length;
-        return baseTime * faseMultiplier;
-    }
-
-    function calcularTempoMedioEtapa(etapaInicio, etapaFim = null) {
-        // Retorna tempo médio para uma etapa específica
-        const temposBase = {
-            1: 5,   // Chegada
-            2: 10,  // Entrada na sala
-            3: 15,  // Cobertura
-            4: 5,   // Fim cobertura
-            5: 45,  // Procedimento
-            6: 10,  // Fim procedimento
-            7: 5,   // Saída
-            8: 15,  // Limpeza
-            9: 5    // Fim limpeza
-        };
-        
-        if (etapaFim) {
-            // Tempo entre duas etapas
-            return temposBase[etapaFim] - temposBase[etapaInicio];
-        } else {
-            // Tempo de uma etapa específica
-            return temposBase[etapaInicio] || 10;
-        }
-    }
-
-    // --- SISTEMA DE NOTIFICAÇÕES (NOVO) ---
+    // --- SISTEMA DE NOTIFICAÇÕES ---
     function showToast(message, type = 'info', duration = 5000) {
         const toast = createToast(message, type);
         const container = document.getElementById('toast-container');
         
-        container.appendChild(toast);
-        
-        // Remove automaticamente
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.remove();
-            }
-        }, duration);
+        if (container) {
+            container.appendChild(toast);
+            
+            // Remove automaticamente
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, duration);
+        }
         
         console.log(`🔔 Toast: ${message} (${type})`);
     }
@@ -737,11 +781,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const config = typeConfig[type] || typeConfig.info;
         
-        div.className = `${config.bg} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 max-w-md animate-slide-up`;
+        div.className = `${config.bg} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 max-w-md transform transition-all duration-300 slide-in-right`;
         div.innerHTML = `
             <span class="text-xl">${config.icon}</span>
             <span class="flex-1">${message}</span>
-            <button onclick="this.parentNode.remove()" class="text-white/80 hover:text-white">
+            <button onclick="this.parentNode.remove()" class="text-white/80 hover:text-white transition-colors">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -751,7 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     }
 
-    // --- INTEGRAÇÃO GOOGLE SHEETS ROBUSTA ---
+    // --- INTEGRAÇÃO GOOGLE SHEETS ---
     async function finalizarAtendimento() {
         if (!pacienteAtual || !salaSelect.value || !leitoSelect.value) {
             showToast('Por favor, complete todas as informações obrigatórias.', 'warning');
@@ -762,7 +806,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Mostra loading
         const saveStatus = document.getElementById('save-status');
-        saveStatus.style.display = 'block';
+        if (saveStatus) {
+            saveStatus.style.display = 'block';
+        }
+        
         checkoutBtn.disabled = true;
         checkoutBtn.innerHTML = '<div class="loading inline-block mr-2"></div> Salvando...';
 
@@ -800,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Verifica se a URL foi configurada
-            if (URL_BACKEND === "COLE_SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI") {
+            if (URL_BACKEND.includes("SEU_SCRIPT_ID_AQUI")) {
                 throw new Error('URL do Google Apps Script não configurada! Verifique o script.js');
             }
             
@@ -822,7 +869,10 @@ document.addEventListener('DOMContentLoaded', () => {
             checkoutBtn.innerHTML = '✅ Salvo com Sucesso!';
             checkoutBtn.classList.remove('primary');
             checkoutBtn.classList.add('success');
-            saveStatus.style.display = 'none';
+            
+            if (saveStatus) {
+                saveStatus.style.display = 'none';
+            }
             
             showToast(`Dados do paciente ${pacienteAtual} salvos com sucesso!`, 'success');
             
@@ -837,7 +887,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             checkoutBtn.innerHTML = '❌ Erro - Dados Salvos Localmente';
             checkoutBtn.disabled = false;
-            saveStatus.style.display = 'none';
+            
+            if (saveStatus) {
+                saveStatus.style.display = 'none';
+            }
             
             showToast('Erro no envio. Dados salvos localmente como backup.', 'warning');
         }
@@ -962,17 +1015,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function mostrarOpcoesPosGravacao() {
         const opcoes = document.createElement('div');
-        opcoes.className = 'mt-4 space-y-2';
+        opcoes.className = 'mt-6 space-y-3';
         opcoes.innerHTML = `
             <button onclick="resetarAplicativo()" class="action-button primary w-full">
-                🔄 Novo Paciente
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.53-2.828A8.973 8.973 0 0120 12m-4.53 2.828A9 9 0 015.47 14.828 8.973 8.973 0 014 12" />
+                </svg>
+                Novo Paciente
             </button>
             <button onclick="gerarRelatorio()" class="action-button secondary w-full">
-                📊 Ver Relatório
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Ver Relatório
             </button>
         `;
         
-        document.getElementById('final-section').appendChild(opcoes);
+        const finalSection = document.getElementById('final-section');
+        if (finalSection) {
+            finalSection.appendChild(opcoes);
+        }
+    }
+
+    // --- FUNÇÕES AUXILIARES ---
+    function calcularDuracao(inicio, fim) {
+        return Math.round((fim - inicio) / 60000 * 100) / 100; // em minutos
+    }
+
+    function formatarDuracao(minutosDecimais) {
+        const minutos = Math.floor(minutosDecimais);
+        const segundos = Math.round((minutosDecimais - minutos) * 60);
+        return `${minutos}:${segundos.toString().padStart(2, '0')}`;
+    }
+
+    function formatarHorario(data) {
+        return data.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    function calcularTempoMedioAteFase(fase) {
+        if (historicalData.length === 0) return 30; // Fallback padrão
+        
+        // Simula cálculo baseado em dados históricos
+        const baseTime = 45; // tempo base em minutos
+        const faseMultiplier = fase / stepNames.length;
+        return baseTime * faseMultiplier;
+    }
+
+    function calcularTempoMedioEtapa(etapaInicio, etapaFim = null) {
+        // Retorna tempo médio para uma etapa específica
+        const temposBase = {
+            1: 5,   // Chegada
+            2: 10,  // Entrada na sala
+            3: 15,  // Cobertura
+            4: 5,   // Fim cobertura
+            5: 45,  // Procedimento
+            6: 10,  // Fim procedimento
+            7: 5,   // Saída
+            8: 15,  // Limpeza
+            9: 5    // Fim limpeza
+        };
+        
+        if (etapaFim) {
+            // Tempo entre duas etapas
+            return temposBase[etapaFim] - temposBase[etapaInicio];
+        } else {
+            // Tempo de uma etapa específica
+            return temposBase[etapaInicio] || 10;
+        }
     }
 
     // --- FUNÇÕES DE SISTEMA ---
@@ -988,24 +1102,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusElement = document.getElementById('system-status');
         const lastSyncElement = document.getElementById('last-sync');
         
-        // Verifica conectividade
-        if (navigator.onLine) {
-            statusElement.innerHTML = `
-                <span class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></span>
-                Sistema Online
-            `;
-        } else {
-            statusElement.innerHTML = `
-                <span class="w-2 h-2 bg-warning-500 rounded-full mr-2"></span>
-                Modo Offline
-            `;
+        if (statusElement) {
+            // Verifica conectividade
+            if (navigator.onLine) {
+                statusElement.innerHTML = `
+                    <span class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></span>
+                    Sistema Online
+                `;
+            } else {
+                statusElement.innerHTML = `
+                    <span class="w-2 h-2 bg-warning-500 rounded-full mr-2"></span>
+                    Modo Offline
+                `;
+            }
         }
         
-        // Última sincronização
-        const lastSync = localStorage.getItem('hemoflow_last_sync');
-        if (lastSync) {
-            const lastSyncDate = new Date(lastSync);
-            lastSyncElement.textContent = `Última sync: ${formatarHorario(lastSyncDate)}`;
+        if (lastSyncElement) {
+            // Última sincronização
+            const lastSync = localStorage.getItem('hemoflow_last_sync');
+            if (lastSync) {
+                const lastSyncDate = new Date(lastSync);
+                lastSyncElement.textContent = `Última sync: ${formatarHorario(lastSyncDate)}`;
+            }
         }
     }
 
@@ -1045,6 +1163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             Escanear Pulseira do Paciente
         `;
         startScanBtn.disabled = false;
+        startScanBtn.classList.remove('danger');
+        startScanBtn.classList.add('primary');
         
         // Reset dos controles
         nextStepBtn.disabled = true;
@@ -1054,6 +1174,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>
             Próxima Etapa
         `;
+        nextStepBtn.classList.remove('disabled');
+        nextStepBtn.classList.add('success');
         
         checkoutBtn.disabled = true;
         checkoutBtn.innerHTML = `
@@ -1064,6 +1186,11 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         checkoutBtn.classList.remove('success');
         checkoutBtn.classList.add('primary');
+        
+        // Habilita inputs manuais
+        manualPatientId.disabled = false;
+        manualSubmitBtn.disabled = false;
+        manualPatientId.placeholder = 'Ou digite o ID do paciente...';
         
         // Reset da timeline
         for (let i = 1; i <= stepNames.length; i++) {
@@ -1088,7 +1215,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset dos selects
         salaSelect.value = '';
         leitoSelect.value = '';
-        document.getElementById('observations').value = '';
+        const observationsElement = document.getElementById('observations');
+        if (observationsElement) {
+            observationsElement.value = '';
+        }
         
         // Reset das estatísticas
         ['total-time', 'procedure-time', 'setup-time', 'cleaning-time'].forEach(id => {
@@ -1111,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Reset concluído!');
     }
 
-    // Função global para relatório (pode ser chamada do HTML)
+    // Função global para relatório
     window.gerarRelatorio = function() {
         showToast('Funcionalidade de relatório em desenvolvimento', 'info');
     };
