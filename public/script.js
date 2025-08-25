@@ -1,14 +1,13 @@
 /*
-  HemoFlow Coletor v6.1
-  - Scanner de código de barras otimizado com "hints" para performance e precisão.
-  - Adicionado feedback visual e melhor tratamento de erros da câmara.
+  HemoFlow Coletor v6.2
+  - Lógica do scanner refeita para máxima compatibilidade móvel.
+  - Adicionado feedback de estado visual para o utilizador (pedir permissão, erro, etc.).
+  - Melhorada a seleção de câmara traseira.
 */
 document.addEventListener('DOMContentLoaded', () => {
 
-  // SUBSTITUA PELA URL DO SEU SCRIPT DO GOOGLE PUBLICADO
   const URL_BACKEND = "https://script.google.com/macros/s/AKfycbxrzqXbsqBtrqAqpzm901vz-Ro0XJyabgKsBtApi8IgVUZJ_JAwbJ2xSPfh8wZB5lnD/exec";
 
-  // --- ESTADO DA APLICAÇÃO ---
   let appState = {
     currentStepId: null,
     patientId: null,
@@ -16,11 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     stepTimes: {},
   };
 
-  // --- Variáveis para o controlo do scanner ---
   let codeReader = null;
   let isScanning = false;
 
-  // --- DEFINIÇÕES E CONSTANTES ---
   const STEP_DEFINITIONS = [
     { id: 'welcome', index: 0 },
     { id: 'scanner', index: 1 },
@@ -38,10 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const mainContainer = document.querySelector('main.app-container');
 
-  // --- INICIALIZAÇÃO ---
   function init() {
     if (!mainContainer) {
-        console.error("Erro Crítico: O container principal ('main.app-container') não foi encontrado no HTML.");
+        console.error("Erro Crítico: O container principal ('main.app-container') não foi encontrado.");
         return;
     }
     generateTimelineStepsHTML();
@@ -49,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showStep('welcome');
   }
 
-  // Gera o HTML para os passos da timeline
   function generateTimelineStepsHTML() {
     TIMELINE_STEP_NAMES.forEach((name, index) => {
       const stepHtml = `
@@ -68,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Configura todos os "ouvintes" de eventos (cliques, etc.)
   function setupEventListeners() {
     const safeAddEventListener = (id, event, handler) => {
         const element = document.getElementById(id);
@@ -101,86 +95,92 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- CONTROLO DO SCANNER (LÓGICA OTIMIZADA) ---
+  // --- CONTROLO DO SCANNER (LÓGICA ATUALIZADA) ---
 
-  /**
-   * Inicia o scanner de código de barras usando a biblioteca ZXing com otimizações.
-   */
   async function startScanner() {
     if (isScanning) return;
-    
-    // Adiciona "dicas" para o leitor focar nos códigos mais comuns e tentar com mais afinco.
+
     const hints = new Map();
-    const formats = [
-        ZXing.BarcodeFormat.QR_CODE,
-        ZXing.BarcodeFormat.CODE_128,
-        ZXing.BarcodeFormat.EAN_13,
-        ZXing.BarcodeFormat.DATA_MATRIX
-    ];
+    const formats = [ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.DATA_MATRIX];
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
     hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
 
     codeReader = new ZXing.BrowserMultiFormatReader(hints);
     isScanning = true;
 
+    const videoElement = document.getElementById('video-preview');
+    const statusElement = document.getElementById('camera-status');
+    const statusMessage = statusElement.querySelector('p');
+
+    const showStatus = (message) => {
+        statusMessage.textContent = message;
+        statusElement.style.display = 'flex';
+        videoElement.style.opacity = 0;
+    };
+
+    const hideStatus = () => {
+        statusElement.style.display = 'none';
+        videoElement.style.opacity = 1;
+    };
+
+    showStatus('A pedir permissão para a câmara...');
+
     try {
-      const videoInputDevices = await codeReader.listVideoInputDevices();
-      if (videoInputDevices.length === 0) {
-          console.error("Nenhuma câmara encontrada.");
-          alert("Nenhuma câmara foi encontrada. Por favor, verifique as permissões do seu navegador.");
-          isScanning = false;
-          return;
-      }
-
-      const selectedDeviceId = videoInputDevices.length > 1 
-          ? videoInputDevices.find(device => device.label.toLowerCase().includes('back'))?.deviceId || videoInputDevices[0].deviceId
-          : videoInputDevices[0].deviceId;
-
-      console.log(`A iniciar scanner com o dispositivo: ${selectedDeviceId}`);
-      
-      const videoElement = document.getElementById('video-preview');
-      
-      // Adiciona um feedback visual de que a câmara está ativa
-      videoElement.style.opacity = 1;
-
-      codeReader.decodeFromVideoDevice(selectedDeviceId, 'video-preview', (result, err) => {
-        if (result) {
-          console.log("Código de barras encontrado!", result);
-          onScanSuccess(result.getText());
+        const videoInputDevices = await codeReader.listVideoInputDevices();
+        if (videoInputDevices.length === 0) {
+            throw new Error("Nenhuma câmara foi encontrada.");
         }
-        if (err && !(err instanceof ZXing.NotFoundException)) {
-          console.error("Erro no scanner:", err);
-        }
-      });
+
+        let selectedDeviceId = null;
+        const rearCamera = videoInputDevices.find(device => /back|traseira|rear/i.test(device.label));
+        selectedDeviceId = rearCamera ? rearCamera.deviceId : videoInputDevices[videoInputDevices.length - 1].deviceId;
+        
+        console.log(`A iniciar scanner com o dispositivo: ${selectedDeviceId}`);
+        showStatus('A iniciar câmara...');
+
+        // Ouve o evento 'playing' para saber quando o vídeo realmente começou
+        videoElement.addEventListener('playing', hideStatus, { once: true });
+
+        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video-preview', (result, err) => {
+            if (result) {
+                onScanSuccess(result.getText());
+            }
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error("Erro no scanner:", err);
+            }
+        });
+
     } catch (err) {
-      console.error("Erro ao obter permissão da câmara ou iniciar o scanner:", err);
-      alert("Não foi possível aceder à câmara. Por favor, verifique se deu permissão no seu navegador.");
-      isScanning = false;
+        console.error("Erro ao iniciar o scanner:", err);
+        let errorMessage = "Erro ao aceder à câmara.";
+        if (err.name === "NotAllowedError") {
+            errorMessage = "Permissão para a câmara negada. Por favor, autorize o acesso nas configurações do seu navegador.";
+        } else {
+            errorMessage = `Erro: ${err.name}. Verifique as permissões e se está a usar HTTPS.`;
+        }
+        showStatus(errorMessage);
+        isScanning = false;
     }
   }
 
-  /**
-   * Para o scanner e liberta a câmara.
-   */
   function stopScanner() {
     if (codeReader) {
-      codeReader.reset();
-      codeReader = null;
-      isScanning = false;
-      console.log("Scanner parado.");
-      const videoElement = document.getElementById('video-preview');
-      if(videoElement) videoElement.style.opacity = 0;
+        codeReader.reset();
+        codeReader = null;
+        isScanning = false;
+        console.log("Scanner parado.");
+        const videoElement = document.getElementById('video-preview');
+        const statusElement = document.getElementById('camera-status');
+        if (videoElement) videoElement.style.opacity = 0;
+        if (statusElement) statusElement.style.display = 'none';
     }
   }
 
-  /**
-   * Chamado quando um código é lido com sucesso.
-   */
   function onScanSuccess(decodedText) {
     if (isScanning) {
-      stopScanner();
-      if (navigator.vibrate) navigator.vibrate(150);
-      processPatientId(decodedText);
+        stopScanner();
+        if (navigator.vibrate) navigator.vibrate(150);
+        processPatientId(decodedText);
     }
   }
 

@@ -14,7 +14,7 @@
     <link href="output.css" rel="stylesheet">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
-    <!-- NOVO: Estilos para o guia visual da câmara -->
+    <!-- Estilos para o guia visual da câmara -->
     <style>
         .camera-container {
             position: relative;
@@ -65,9 +65,12 @@
                     <h2 class="step-title">Identificação</h2>
                     <p class="step-subtitle">Centralize o código na área marcada.</p>
                 </div>
-                <!-- NOVO: Container para o vídeo e para o guia visual -->
+                <!-- ATUALIZAÇÃO: Container com feedback de estado -->
                 <div class="camera-container">
-                    <video id="video-preview" class="camera-preview"></video>
+                    <video id="video-preview" class="camera-preview" autoplay playsinline muted></video>
+                    <div id="camera-status" class="absolute inset-0 flex items-center justify-center text-white text-center p-4 bg-black/50" style="display: none;">
+                        <p>A pedir permissão para a câmara...</p>
+                    </div>
                 </div>
                 <p class="text-center my-4 text-white/70">ou</p>
                 <div class="input-group">
@@ -77,6 +80,7 @@
             </div>
         </section>
 
+        <!-- Outras seções do HTML (sem alterações) -->
         <section id="step-room-selection" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <h2 class="step-title">Paciente: <span id="patient-id-display" class="text-white">--</span></h2>
@@ -129,7 +133,7 @@
 
     <footer class="absolute bottom-4 text-center w-full">
         <a href="./painel-gestor.html" target="_blank" class="text-white/50 text-sm hover:text-white/80 transition-colors">
-            Acesso ao Painel Gestor
+            Aceder ao Painel Gestor
         </a>
     </footer>
 
