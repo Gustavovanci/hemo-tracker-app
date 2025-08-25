@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HemoFlow Analytics - Dashboard Executivo</title>
+
+  <!-- Tailwind e libs -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/2.29.3/index.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+  <!-- ESTILOS ATUALIZADOS -->
+  <style>
+    :root{
+      --incor-red-dark:#af1e1e; --incor-red-light:#da251c;
+      --success:#10b981; --warning:#f59e0b; --info:#3b82f6;
+      --gradient-primary: linear-gradient(135deg,#667eea 0%, #764ba2 100%);
+    }
+    *{ box-sizing:border-box; }
+    body{ font-family:'Poppins',sans-serif; background:#0a0e1a; color:#e5e7eb; overflow-x:hidden; position:relative; }
+    body::before{
+      content:''; position:fixed; inset:0; z-index:-1;
+      background:
+        radial-gradient(ellipse at top, rgba(102,126,234,.10) 0%, transparent 70%),
+        radial-gradient(ellipse at bottom right, rgba(118,75,162,.08) 0%, transparent 70%),
+        radial-gradient(ellipse at bottom left, rgba(239,68,68,.05) 0%, transparent 70%);
+      animation:backgroundShift 20s ease-in-out infinite alternate;
+    }
+    @keyframes backgroundShift{0%{opacity:.3;transform:scale(1)}100%{opacity:.6;transform:scale(1.1)}}
+
+    .glass{ background:rgba(17,26,43,.7); backdrop-filter:blur(20px) saturate(180%); border:1px solid rgba(255,255,255,.12); box-shadow:0 8px 32px rgba(0,0,0,.3); }
+    .glass-intense{ background:rgba(17,26,43,.85); backdrop-filter:blur(24px) saturate(200%); border:1px solid rgba(255,255,255,.18); box-shadow:0 12px 40px rgba(0,0,0,.4); }
+
+    .card{ background:linear-gradient(145deg, rgba(17,26,43,.95), rgba(31,41,55,.85)); border-radius:20px; padding:28px; border:1px solid rgba(255,255,255,.10); transition:all .35s; position:relative; overflow:hidden; }
+    .card:hover{ transform:translateY(-6px) scale(1.02); box-shadow:0 20px 48px rgba(0,0,0,.40); border-color:rgba(255,255,255,.18); }
+
+    .kpi-card{ background:linear-gradient(145deg, rgba(17,26,43,.98), rgba(31,41,55,.9)); border-radius:24px; padding:24px; border:1px solid rgba(255,255,255,.12); transition:all .25s; cursor:pointer; display: flex; flex-direction: column; justify-content: space-between; }
+    .kpi-card:hover{ transform:translateY(-8px) scale(1.02); box-shadow:0 24px 56px rgba(0,0,0,.45); }
+    .kpi-value{ color:#fff; font-size:3rem; line-height:1; font-weight:900; text-shadow:0 0 20px rgba(255,255,255,.08); background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    #kpi-gargalo { font-size: 1.5rem; line-height: 1.2; }
+
+    .nav-item{ color:rgba(255,255,255,.78); transition:.25s; border-radius:16px; }
+    .nav-item:hover{ background:rgba(255,255,255,.12); color:#fff; }
+    .nav-item.active{ background:linear-gradient(135deg, var(--incor-red-dark), var(--incor-red-light)); color:#fff; font-weight:700; box-shadow:0 8px 24px rgba(175,30,30,.35); }
+
+    .sidebar{ width:300px; transition: all .35s ease-in-out; transform:translateX(-100%); }
+    .sidebar.open{ transform:translateX(0); }
+    .main-content{ transition: margin-left .35s ease-in-out; }
+
+    @media (min-width:1024px){
+        .main-content-shifted { margin-left: 300px; }
+        .sidebar-collapsed { width: 100px; }
+        .sidebar-collapsed .sidebar-header h2,
+        .sidebar-collapsed .sidebar-header p,
+        .sidebar-collapsed .nav-item span,
+        .sidebar-collapsed .filters-container { display: none; }
+        .sidebar-collapsed .nav-item svg { margin-right: 0; }
+        .sidebar-collapsed .nav-item { justify-content: center; }
+        .sidebar-collapsed .sidebar-pin-btn svg { transform: rotate(180deg); }
+        .main-content-collapsed { margin-left: 100px; }
+    }
+    
+    .loading-ring{ border:4px solid rgba(255,255,255,.12); border-top:4px solid var(--incor-red-light); border-radius:50%; width:56px; height:56px; animation:spin 1s linear infinite; }
+    @keyframes spin{100%{transform:rotate(360deg)}}
+
+    .enhanced-select,.enhanced-input{ background:rgba(17,26,43,.8); border:2px solid rgba(255,255,255,.10); border-radius:16px; padding:14px 16px; color:#fff; transition:.25s; }
+    .enhanced-select:focus,.enhanced-input:focus{ outline:none; border-color:var(--incor-red-light); box-shadow:0 0 0 4px rgba(218,37,28,.12); }
+
+    .progress{ height:12px; background:rgba(36,50,78,.6); border-radius:20px; overflow:hidden; }
+    .progress>span{ display:block; height:100%; background:linear-gradient(90deg,#22c55e,#16a34a,#10b981); transition:width .9s; }
+
+    .badge{ font-size:.8rem; padding:6px 14px; border-radius:20px; font-weight:600; display:inline-flex; gap:8px; }
+
+    .ghost-btn{ border:2px solid rgba(255,255,255,.22); padding:10px 16px; border-radius:14px; background:transparent; color:#fff; transition:.25s; font-weight:600; }
+    .ghost-btn:hover{ background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.42); transform:translateY(-2px); box-shadow:0 10px 26px rgba(0,0,0,.35); }
+
+    .dot{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+    .dot.green{ background:#22c55e } .dot.yellow{ background:#eab308 } .dot.red{ background:#ef4444 }
+
+    .header-title{ font-size:2.8rem; font-weight:900; color:#fff; text-shadow:0 0 24px rgba(255,255,255,.08); }
+    .chart-container{ background:rgba(17,26,43,.45); border-radius:18px; padding:18px; border:1px solid rgba(255,255,255,.06); }
+    .access-card{ background: rgba(17,26,43,.9); border:1px solid rgba(255,255,255,.12); box-shadow:0 18px 48px rgba(0,0,0,.5); }
+  </style>
+</head>
+<body>
+  <!-- MODIFICAÇÃO: Sidebar com botão de "pin" para recolher -->
+  <aside id="sidebar" class="sidebar fixed left-0 top-0 h-full glass-intense z-50 p-6 flex flex-col">
+    <div class="flex-grow overflow-y-auto">
+      <div class="flex items-center justify-between mb-12 sidebar-header">
+        <div class="overflow-hidden flex items-center gap-4">
+            <img src="https://img.icons8.com/color/48/heart-with-pulse.png" alt="Logo" class="h-10 w-10"/>
+            <div>
+              <h2 class="text-3xl font-black text-white whitespace-nowrap">HemoFlow</h2>
+              <p class="text-white/80 text-lg font-medium whitespace-nowrap">Analytics</p>
+            </div>
+        </div>
+        <button id="sidebar-close" class="text-white/80 hover:text-white lg:hidden text-4xl">&times;</button>
+        <button id="sidebar-pin-btn" class="hidden lg:block text-white/80 hover:text-white sidebar-pin-btn p-2 rounded-full hover:bg-white/10 transition-transform duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l-5 2 15-7-3 11z" /></svg>
+        </button>
+      </div>
+
+      <div class="mb-8 filters-container">
+        <h3 class="text-sm font-bold text-gray-300 mb-4 tracking-wider uppercase">FILTROS</h3>
+        <div class="space-y-4">
+          <select id="date-filter" class="w-full enhanced-select"><option value="all" selected>Todo o Período</option><option value="month">Este Mês</option><option value="week">Esta Semana</option><option value="today">Hoje</option></select>
+          <select id="sala-filter" class="w-full enhanced-select"><option value="all" selected>Todas as Salas</option><option value="Sala 1">Sala 1</option><option value="Sala 5">Sala 5</option></select>
+          <select id="group-filter" class="w-full enhanced-select"><option value="day" selected>Agrupar por Dia</option><option value="week">Agrupar por Semana</option><option value="month">Agrupar por Mês</option></select>
+          <div><label class="text-sm text-gray-300 font-semibold">Meta de Giro (SLA, em minutos)</label><input id="sla-input" type="number" min="1" step="1" value="60" class="w-full mt-2 enhanced-input"></div>
+          <select id="source-filter" class="w-full enhanced-select"><option value="all" selected>Todas as Fontes</option><option value="App">App (PWA)</option><option value="Manual">Profissional (Manual)</option><option value="Câmera">Câmera</option></select>
+          <p class="text-xs text-white/60 mt-2">Se a planilha não possuir "Fonte/Origem/Coleta", assumimos "App".</p>
+        </div>
+      </div>
+
+      <nav class="space-y-3">
+        <a class="nav-item flex items-center p-4 active" data-section="visao-geral">
+          <svg class="w-6 h-6 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/></svg>
+          <span class="font-semibold whitespace-nowrap">Visão Geral</span>
+        </a>
+        <a class="nav-item flex items-center p-4" data-section="analise-salas">
+          <svg class="w-6 h-6 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 002 2v2a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2-2V3a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
+          <span class="font-semibold whitespace-nowrap">Análise de Salas</span>
+        </a>
+        <a class="nav-item flex items-center p-4" data-section="analises-graficas">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          <span class="font-semibold whitespace-nowrap">Análises Gráficas</span>
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div id="access-overlay" class="fixed inset-0 flex items-center justify-center z-50" style="background: linear-gradient(135deg, rgba(10, 14, 26, 0.95), rgba(17, 26, 43, 0.98));">
+    <div class="access-card p-12 rounded-3xl text-center max-w-md w-full mx-4">
+      <h2 class="text-4xl font-black text-white mb-3">HemoFlow Analytics</h2>
+      <p class="text-white/80 mb-10 text-lg">Dashboard Executivo</p>
+      <div class="space-y-6">
+        <input type="password" id="password-input" class="w-full p-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-4 focus:ring-red-500/30 transition-all duration-300" placeholder="Digite seu acesso (ex.: hemo)"/>
+        <button id="access-btn" class="w-full p-5 bg-gradient-to-r from-red-600 to-red-500 text-white font-bold rounded-2xl hover:from-red-500 hover:to-red-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl">Acessar</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="dashboard-main" class="main-content hidden min-h-screen p-4 sm:p-8">
+    <!-- MODIFICAÇÃO: Header redesenhado com perfil do usuário -->
+    <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+      <div class="flex items-center space-x-4">
+        <button id="sidebar-toggle" class="glass-intense p-4 rounded-2xl text-white hover:bg-white/20 lg:hidden">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div>
+          <h1 id="header-title" class="header-title mb-1">Visão Geral</h1>
+          <p class="text-white/80 text-xl font-medium" id="welcome-text">Performance em Tempo Real</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4 w-full lg:w-auto justify-end">
+        <div class="glass-intense p-3 rounded-2xl text-center hidden sm:block">
+          <p class="text-white/70 text-xs font-semibold">Última Atualização</p>
+          <p class="text-white font-bold" id="last-updated">--:--</p>
+        </div>
+        <button id="refresh-btn" class="glass-intense p-4 rounded-2xl text-white hover:bg-white/20" title="Atualizar">
+          <svg id="refresh-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+        
+        <!-- NOVO: Perfil de usuário moderno com dropdown -->
+        <div id="user-profile-menu" class="relative">
+            <button id="user-profile-btn" class="flex items-center gap-3 glass-intense p-2 pr-4 rounded-full text-white hover:bg-white/20">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center font-bold" id="user-avatar">--</div>
+                <div class="text-left hidden md:block">
+                    <p class="font-bold text-sm leading-tight" id="logged-user-name">--</p>
+                    <p class="text-xs text-white/70" id="logged-user-role">--</p>
+                </div>
+            </button>
+            <div id="user-profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-2xl shadow-lg z-50">
+                <button id="logout-btn" class="w-full text-left px-4 py-3 text-white/80 hover:bg-red-600/50 hover:text-white rounded-2xl transition-colors flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    Sair
+                </button>
+            </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="loading-state" class="text-center py-32"><div class="loading-ring mx-auto"></div><p class="text-white text-2xl font-semibold mt-6">Analisando dados...</p></div>
+    <div id="error-state" class="hidden text-center py-32 glass-intense rounded-3xl"><h3 class="text-white text-3xl font-bold">Ops!</h3><p class="text-white/70 mt-3 text-lg" id="error-message"></p></div>
+
+    <div id="dashboard-content" class="hidden">
+      <div id="section-visao-geral" class="section-content space-y-8">
+        <!-- MODIFICAÇÃO: Ajuste no grid e classes para evitar quebra de texto -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div class="kpi-card"><h3 class="text-gray-300 font-bold flex items-center text-base break-words">Tempo de Giro — Mediana <span class="ml-2 text-xs text-white/60 cursor-help" title="Metade dos casos fica abaixo deste valor. Robusto a outliers.">💡</span></h3><div class="mt-3 flex items-baseline gap-4"><p id="kpi-mediana" class="kpi-value">0 min</p><span id="kpi-p90" class="badge bg-yellow-500/20 text-yellow-300" title="Tempo que 90% dos casos não excedem">P90: -- min</span></div><p class="text-sm text-white/70 mt-2">Resumo robusto do giro.</p></div>
+          <div class="kpi-card"><h3 class="text-gray-300 font-bold text-base break-words">Conformidade com SLA <span class="ml-2 text-xs text-white/60 cursor-help" title="% de casos com giro ≤ a meta (min).">💡</span></h3><div class="flex items-center justify-between mt-3"><p id="kpi-sla" class="kpi-value">--%</p><span class="badge bg-blue-500/20 text-blue-300">Meta: <b id="kpi-sla-target">60</b> min</span></div><div class="progress mt-4"><span id="kpi-sla-bar" style="width:0%"></span></div><p class="text-sm text-white/70 mt-2">% de procedimentos dentro da meta.</p></div>
+          <div class="kpi-card"><h3 class="text-gray-300 font-bold text-base break-words">Throughput Médio / Dia <span class="ml-2 text-xs text-white/60 cursor-help" title="Procedimentos/dia no período filtrado.">💡</span></h3><p id="kpi-throughput" class="kpi-value text-green-400">0</p><p class="text-sm text-white/70 mt-2">Capacidade média diária.</p></div>
+          <div class="kpi-card"><h3 class="text-gray-300 font-bold text-base break-words">Gargalo Atual (mediano) <span class="ml-2 text-xs text-white/60 cursor-help" title="Segmento A→B com maior mediana (empate: maior IQR).">💡</span></h3><p id="kpi-gargalo" class="font-bold text-red-400 mt-3 break-words">--</p><p class="text-sm text-white/70 mt-2">Alvo de Kaizen.</p></div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+          <div class="card flex-1"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Andon de SLA por Sala</h2><span class="text-xs text-white/60">Verde ≥80%, Amarelo 60–79%, Vermelho &lt;60%</span></div><ul id="andon-list" class="space-y-3"></ul></div>
+          <div class="card w-full lg:w-96"><h2 class="text-xl font-extrabold mb-4">Auditoria</h2><button id="export-p90-btn" class="w-full ghost-btn mb-3">Exportar CSV (&gt; P90)</button><p class="text-xs text-white/60">Baixe casos acima do P90 para auditoria.</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Alertas de Desvio</h2><span class="text-xs text-white/60">Limites por segmento.</span></div><div id="alerts-summary" class="text-sm text-white/90 mb-4"></div><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="text-gray-400"><th class="py-3">Data</th><th class="py-3">Sala</th><th class="py-3">Segmento</th><th class="py-3">Tempo</th></tr></thead><tbody id="alerts-top" class="text-white/90"></tbody></table></div></div>
+          <div class="card"><h2 class="text-xl font-extrabold mb-4">Casos Lentos • Top 5</h2><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="text-gray-400 text-sm"><th class="py-3">Data</th><th class="py-3">Sala</th><th class="py-3">Fonte</th><th class="py-3">Giro (min)</th><th class="py-3">Segmento Limitante</th></tr></thead><tbody id="slow-cases-body" class="text-white/90 text-sm"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- MODIFICAÇÃO: Grid do Pareto e Evolução alterado para 50/50 e altura aumentada -->
+      <div id="section-analises-graficas" class="section-content hidden space-y-8">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <div class="card xl:col-span-1"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Evolução do Giro (Mediana)</h2><span class="badge bg-blue-500/20 text-blue-300">Unidade: min</span></div><div class="chart-container" style="height:450px;"><canvas id="performance-over-time-chart"></canvas></div><p class="text-xs text-white/60 mt-3">Faixa sombreada = p25–p75. Linha de meta em vermelho.</p></div>
+          <div class="card xl:col-span-1"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Pareto de Contribuições</h2><span class="badge bg-blue-500/20 text-blue-300">Unidade: min</span></div><div class="chart-container" style="height:450px;"><canvas id="pareto-segments-chart"></canvas></div><p class="text-xs text-white/60 mt-3">Barras = mediana; linha = cumulativa (%).</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Distribuição do Tempo de Giro</h2><span class="badge bg-blue-500/20 text-blue-300">Bins de 5 min</span></div><div class="chart-container" style="height:320px;"><canvas id="histogram-chart"></canvas></div></div>
+          <div id="source-section" class="card hidden"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Comparativo por Fonte</h2><span class="badge bg-blue-500/20 text-blue-300">Unidade: min</span></div><div class="chart-container" style="height:320px;"><canvas id="source-compare-chart"></canvas></div></div>
+        </div>
+      </div>
+
+      <div id="section-analise-salas" class="section-content hidden space-y-8">
+        <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Quadrante de Eficiência (Volume vs. Tempo)</h2><span class="badge bg-blue-500/20 text-blue-300">Meta: <b id="quad-sla-target">60</b> min</span></div><div class="chart-container" style="height:420px;"><canvas id="efficiency-quadrant-chart"></canvas></div><p class="text-xs text-white/60 mt-3">Uma cor por sala, com legenda.</p></div>
+        <div class="card"><h2 class="text-xl font-extrabold mb-5">Fluxo do Processo — Medianas por Segmento</h2><div class="chart-container" style="height:420px;"><canvas id="process-flow-comparison-chart"></canvas></div><p class="text-xs text-white/60 mt-3">Unidade: minutos.</p></div>
+        <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Checklist SMED — Tempo Externo × Em Sala</h2><span class="badge bg-blue-500/20 text-blue-300">Unidade: min</span></div><div class="chart-container" style="height:340px;"><canvas id="smed-stacked-chart"></canvas></div></div>
+        <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Agendamento Inteligente — Melhores Horários</h2><span class="text-xs text-white/60">Seg–Sex, 07–19.</span></div><div class="grid lg:grid-cols-3 gap-6"><div class="lg:col-span-1"><h3 class="font-bold mb-3 text-white/90 text-lg">Top Horários Recomendados</h3><ul id="top-hours-list" class="space-y-3"></ul></div><div class="lg:col-span-2"><div class="chart-container" style="height:320px;"><canvas id="hour-compliance-chart"></canvas></div></div></div></div>
+        <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Heatmap de Gargalos por Sala</h2><span class="text-xs text-white/60">Valores em minutos. Cores vs mediana global.</span></div><div id="bottleneck-heatmap" class="overflow-x-auto"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SEU SCRIPT DE LÓGICA ORIGINAL (INCLUÍDO) -->
+  <script>
+    // ====================== CONFIG ======================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1DqdGi-gR4Fqd0JxxP4q0MxeBIN5Cv2FZEUOjQd-qplH5X-O9A94rsoFLFDUGaBgn/exec';
+    const USERS = { 'vanessa':{name:'Vanessa Affonso', role:'Diretora'}, 'gustavo':{name:'Gustavo', role:'Administrador'}, 'hemo':{name:'Acesso Geral', role:'Visitante'} };
+    const STORAGE_KEY = 'hemo_user_v1';
+    const STEP_NAMES = [
+      'Chegada na Hemodinâmica','Entrada na Sala','Início da Cobertura','Término da Cobertura',
+      'Início do Procedimento','Término do Procedimento','Saída da Sala','Início da Limpeza','Término da Limpeza'
+    ];
+    const SEGMENTS = [
+      { key:'cheg_entr',    label:'Chegada → Entrada',                         from:'Chegada na Hemodinâmica', to:'Entrada na Sala' },
+      { key:'entr_iniCob',  label:'Entrada → Início Cobertura',                from:'Entrada na Sala',         to:'Início da Cobertura' },
+      { key:'cobertura',    label:'Cobertura (Início → Término)',              from:'Início da Cobertura',     to:'Término da Cobertura' },
+      { key:'pos_cob',      label:'Pós-cobertura (Término → Início Proc.)',    from:'Término da Cobertura',    to:'Início do Procedimento' },
+      { key:'proc',         label:'Procedimento (Início → Término)',           from:'Início do Procedimento',  to:'Término do Procedimento' },
+      { key:'pos_proc',     label:'Pós-procedimento (Término → Saída)',        from:'Término do Procedimento', to:'Saída da Sala' },
+      { key:'saida_iniLimp',label:'Até Limpeza (Saída → Início Limpeza)',      from:'Saída da Sala',           to:'Início da Limpeza' },
+      { key:'limpeza',      label:'Limpeza (Início → Término)',                from:'Início da Limpeza',       to:'Término da Limpeza' }
+    ];
+    const ALERT_LIMITS_SEG = { cheg_entr: 30, entr_iniCob: 10, cobertura: 15, pos_cob: 5, proc: 60, pos_proc: 10, saida_iniLimp: 5, limpeza: 15 };
+    const BIN_SIZE_MIN = 5;
+    const palette = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#e11d48'];
+
+    // ====================== STATE ======================
+    let currentUser = null;
+    let currentData = null;
+    let currentFiltered = { analysis:{} };
+    let charts = {};
+
+    // ====================== DOM ======================
+    const dom = {
+      accessOverlay: document.getElementById('access-overlay'), passwordInput: document.getElementById('password-input'), accessBtn: document.getElementById('access-btn'),
+      mainDashboard: document.getElementById('dashboard-main'), sidebar: document.getElementById('sidebar'),
+      loadingState: document.getElementById('loading-state'), errorState: document.getElementById('error-state'),
+      errorMessage: document.getElementById('error-message'), dashboardContent: document.getElementById('dashboard-content'),
+      refreshBtn: document.getElementById('refresh-btn'), refreshIcon: document.getElementById('refresh-icon'), lastUpdated: document.getElementById('last-updated'),
+      headerTitle: document.getElementById('header-title'), welcomeText: document.getElementById('welcome-text'),
+      logoutBtn: document.getElementById('logout-btn'),
+      dateFilter: document.getElementById('date-filter'), salaFilter: document.getElementById('sala-filter'),
+      groupFilter: document.getElementById('group-filter'), slaInput: document.getElementById('sla-input'),
+      sourceFilter: document.getElementById('source-filter'),
+      kpiMediana: document.getElementById('kpi-mediana'), kpiP90: document.getElementById('kpi-p90'), kpiSLA: document.getElementById('kpi-sla'),
+      kpiSlaBar: document.getElementById('kpi-sla-bar'), kpiSlaTarget: document.getElementById('kpi-sla-target'), kpiThroughput: document.getElementById('kpi-throughput'),
+      kpiGargalo: document.getElementById('kpi-gargalo'), quadSlaTarget: document.getElementById('quad-sla-target'),
+      andonList: document.getElementById('andon-list'), alertsSummary: document.getElementById('alerts-summary'), alertsTop: document.getElementById('alerts-top'),
+      exportP90Btn: document.getElementById('export-p90-btn'), slowCasesBody: document.getElementById('slow-cases-body'), sourceSection: document.getElementById('source-section')
+    };
+
+    // ====================== HELPERS ======================
+    const roundMin = v => Math.round(v);
+    const fmtMin = v => `${roundMin(v)} min`;
+    const isValidDate = d => d && !isNaN(new Date(d).getTime());
+    const notNull = x => x !== null && x !== undefined;
+    const uniq = arr => Array.from(new Set(arr));
+    const safeAvg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+    const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const median = arr => { const a=arr.slice().sort((x,y)=>x-y); const n=a.length; if(!n) return null; const m=Math.floor(n/2); return n%2? a[m]: (a[m-1]+a[m])/2; };
+    const percentile = (arr,p)=>{ if(!arr.length) return null; const a=arr.slice().sort((x,y)=>x-y); const idx=(p/100)*(a.length-1); const lo=Math.floor(idx), hi=Math.ceil(idx); if(lo===hi) return a[lo]; return a[lo]+(a[hi]-a[lo])*(idx-lo); };
+    const slaLine = (getY)=>({ id:'slaLine', afterDatasetsDraw(chart){ const {ctx, chartArea:{left,right}, scales:{y}}=chart; const yv=getY(); if(!yv||!y) return; const py=y.getPixelForValue(yv); ctx.save(); ctx.beginPath(); ctx.setLineDash([6,6]); ctx.strokeStyle='rgba(218,37,28,0.8)'; ctx.lineWidth=2; ctx.moveTo(left,py); ctx.lineTo(right,py); ctx.stroke(); ctx.restore(); }});
+
+    // ====================== UI EVENTOS ======================
+    function initializeEventListeners(){
+      document.getElementById('sidebar-toggle').addEventListener('click', ()=> dom.sidebar.classList.add('open'));
+      document.getElementById('sidebar-close').addEventListener('click', ()=> dom.sidebar.classList.remove('open'));
+      dom.accessBtn.addEventListener('click', handleLogin);
+      dom.passwordInput.addEventListener('keypress', e=>{ if(e.key==='Enter') handleLogin(); });
+      dom.refreshBtn.addEventListener('click', initDashboard);
+      const doLogout = ()=>{ localStorage.removeItem(STORAGE_KEY); window.location.reload(); };
+      dom.logoutBtn?.addEventListener('click', doLogout);
+      document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', ()=> switchSection(item.dataset.section)));
+      [dom.dateFilter, dom.salaFilter, dom.groupFilter, dom.slaInput, dom.sourceFilter].forEach(el => el.addEventListener('change', updateDisplay));
+      dom.exportP90Btn.addEventListener('click', exportCSVAboveP90);
+    }
+
+    function restoreSession(){
+      const saved = localStorage.getItem(STORAGE_KEY); if(!saved) return false;
+      try{
+        const u = JSON.parse(saved); if(!u || !USERS[u.username]) return false;
+        currentUser = u;
+        dom.accessOverlay.classList.add('opacity-0','pointer-events-none');
+        dom.mainDashboard.classList.remove('hidden');
+        setupUserInterface(); initDashboard(); return true;
+      }catch(_){ return false; }
+    }
+
+    function handleLogin(){
+      const input = dom.passwordInput.value.toLowerCase().trim();
+      const user = USERS[input];
+      if(user){
+        currentUser = { username:input, ...user };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser));
+        dom.accessOverlay.classList.add('opacity-0','pointer-events-none');
+        dom.mainDashboard.classList.remove('hidden');
+        setupUserInterface(); initDashboard();
+      } else { alert('Usuário ou senha incorreta.'); }
+    }
+
+    function setupUserInterface(){
+      if(currentUser.name !== 'Acesso Geral'){ dom.welcomeText.textContent = `Olá, ${currentUser.name.split(' ')[0]}`; }
+      if(window.innerWidth >= 1024){ dom.mainDashboard.classList.add('main-content-shifted'); dom.sidebar.classList.add('open'); }
+    }
+
+    function switchSection(sectionName){
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.section===sectionName));
+      document.querySelectorAll('.section-content').forEach(section => section.classList.toggle('hidden', section.id!==`section-${sectionName}`));
+      const sectionTitles = { 'visao-geral': 'Visão Geral', 'analise-salas': 'Análise de Salas', 'analises-graficas': 'Análises Gráficas' };
+      dom.headerTitle.textContent = sectionTitles[sectionName] || 'Dashboard';
+      if(window.innerWidth < 1024){ dom.sidebar.classList.remove('open'); }
+    }
+
+    // ====================== JSONP ======================
+    function loadJSONP(url, timeoutMs = 12000){
+      return new Promise((resolve, reject)=>{
+        const cb = '__hemoJSONP_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+        const sep = url.includes('?') ? '&' : '?';
+        const script = document.createElement('script');
+        let done = false;
+        const timer = setTimeout(()=>{ if (done) return; done = true; cleanup(); reject(new Error('JSONP timeout')); }, timeoutMs);
+        function cleanup(){ clearTimeout(timer); try { delete window[cb]; } catch(_) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
+        window[cb] = (payload)=>{ if (done) return; done = true; cleanup(); resolve(payload); };
+        script.src = `${url}${sep}callback=${cb}&_=${Date.now()}`;
+        script.onerror = ()=>{ if (done) return; done = true; cleanup(); reject(new Error('JSONP network error')); };
+        document.body.appendChild(script);
+      });
+    }
+
+    // ====================== DADOS (somente JSONP) ======================
+    async function initDashboard(){
+      showState('loading');
+      dom.refreshIcon.classList.add('animate-spin');
+      try{
+        const result = await loadJSONP(SCRIPT_URL);
+        if(!result?.success) throw new Error(result?.error || 'Erro no script do Google.');
+        currentData = processData(result.data);
+        populateSalaFilter(currentData);
+        updateDisplay();
+        showState('content');
+      } catch(e2){
+        dom.errorMessage.textContent = `Falha na comunicação. Detalhe: ${e2.message || e2}`;
+        showState('error');
+      } finally {
+        dom.refreshIcon.classList.remove('animate-spin');
+        dom.lastUpdated.textContent = new Date().toLocaleTimeString('pt-BR');
+      }
+    }
+
+    function processData(rawData){
+      const analysis = {};
+      for(const salaName in rawData){
+        if(!Array.isArray(rawData[salaName])) continue;
+        const procedures = rawData[salaName].map(proc=>{
+          const atendimentoDate = proc['Data Atendimento'];
+          if(!isValidDate(atendimentoDate)) return null;
+          const source = proc['Fonte'] || proc['Origem'] || proc['Coleta'] || proc['Source'] || 'App';
+          const timeBy = {};
+          STEP_NAMES.forEach(name => { timeBy[name] = isValidDate(proc[name]) ? new Date(proc[name]).getTime() : null; });
+          const segments = {};
+          SEGMENTS.forEach(seg=>{ const a=timeBy[seg.from], b=timeBy[seg.to]; segments[seg.key] = (a!=null && b!=null) ? (b-a)/60000 : null; });
+          const totalTime = (timeBy[STEP_NAMES[0]]!=null && timeBy[STEP_NAMES[STEP_NAMES.length-1]]!=null) ? (timeBy[STEP_NAMES[STEP_NAMES.length-1]] - timeBy[STEP_NAMES[0]])/60000 : null;
+          const arrivalMs = timeBy[STEP_NAMES[0]] || new Date(atendimentoDate).getTime();
+          return { ...proc, source, date:new Date(atendimentoDate), arrival:new Date(arrivalMs), sala:salaName, segments, totalTime };
+        }).filter(Boolean);
+        analysis[salaName] = { procedures };
+      }
+      return { analysis };
+    }
+
+    function populateSalaFilter(data){
+      const sel = dom.salaFilter;
+      const current = sel.value;
+      const salas = Object.keys(data.analysis);
+      sel.innerHTML = '<option value="all">Todas as Salas</option>' + salas.map(s=> `<option value="${s}">${s}</option>`).join('');
+      if (salas.includes(current)) sel.value = current; else sel.value='all';
+    }
+
+    function filterProceduresByDate(procs, dateRange){
+      const now = new Date();
+      if(dateRange==='all') return procs;
+      let start;
+      if(dateRange==='today') start = dateFns.startOfToday();
+      else if(dateRange==='week') start = dateFns.startOfWeek(now, { weekStartsOn:1 });
+      else if(dateRange==='month') start = dateFns.startOfMonth(now);
+      return procs.filter(p=> p.date >= start);
+    }
+
+    function filterBySource(procs, selected){
+      if(selected==='all') return procs;
+      const sel = norm(selected);
+      const aliases = { app: ['app','pwa'], manual: ['manual','profissional','enfermagem','prof'], camera: ['camera','cftv','video','videomonitoramento','câmera','vídeo'] };
+      const key = sel.includes('app') ? 'app' : sel.includes('manual') ? 'manual' : 'camera';
+      return procs.filter(p=>{ const s = norm(p.source || 'app'); return s===sel || aliases[key].some(a => s.includes(a)); });
+    }
+
+    const _orig_filterData = (analysis, filters)=>{
+      const out = {};
+      for(const salaName in analysis){
+        if(filters.sala==='all' || filters.sala===salaName){
+          let procs = filterProceduresByDate(analysis[salaName].procedures, filters.dateRange);
+          procs = filterBySource(procs, filters.source);
+          out[salaName] = { procedures: procs };
+        }
+      }
+      return out;
+    };
+    function filterData(analysis, filters){
+      const res = _orig_filterData(analysis, filters);
+      currentFiltered.analysis = res;
+      return res;
+    }
+
+    // ====================== CÁLCULOS ======================
+    function calcMetrics(procedures){
+      const valid = procedures.filter(p=> typeof p.totalTime==='number' && p.totalTime>0);
+      if(!valid.length) return null;
+      const tempos = valid.map(p=>p.totalTime).filter(notNull);
+      const med = median(tempos);
+      const p90 = percentile(tempos, 90);
+      const dias = uniq(valid.map(p=>p.date.toDateString())).length || 1;
+      const segMedians = {}; const segIQR = {};
+      SEGMENTS.forEach(seg=>{
+        const vals = valid.map(p=>p.segments[seg.key]).filter(v=> typeof v==='number' && v>0);
+        segMedians[seg.key] = vals.length ? median(vals) : null;
+        const q1=percentile(vals,25), q3=percentile(vals,75);
+        segIQR[seg.key] = (q1!=null&&q3!=null)? (q3-q1): 0;
+      });
+      const entries = Object.entries(segMedians).filter(([,v])=> v!=null);
+      const gargalo = entries.reduce((acc,[key,val])=>{
+        const sel = (val>(acc.val||-1)) || (val===(acc.val||-1) && (segIQR[key]>(acc.iqr||0)));
+        return sel ? { key, val, iqr: segIQR[key] } : acc;
+      }, { key:'--', val:null, iqr:0 });
+      return { procedures: valid, totalProcedimentos: valid.length, medianaGiro: med, p90Giro: p90, throughputDia: valid.length / dias, segmentMedians: segMedians, segmentIQR: segIQR, gargalo };
+    }
+
+    function groupBuckets(procs, mode){
+      const fmt = (d)=>{ if(mode==='day') return d.toISOString().split('T')[0]; if(mode==='week'){ const y=d.getFullYear(); const w=dateFns.getISOWeek(d); return `${y}-W${String(w).padStart(2,'0')}`; } if(mode==='month') return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
+      const buckets = {};
+      procs.forEach(p=>{ if(!(typeof p.totalTime==='number' && p.totalTime>0)) return; const key = fmt(p.date); (buckets[key] ||= []).push(p.totalTime); });
+      const keys = Object.keys(buckets).sort();
+      return keys.map(k=>{ const arr = buckets[k]; return { key:k, med: median(arr)||0, p25: percentile(arr,25)||0, p75: percentile(arr,75)||0 }; });
+    }
+
+    function histogramData(tempos, binSizeMin=5){
+      if(!tempos.length) return {labels:[], counts:[]};
+      const mins = Math.min(...tempos), maxs = Math.max(...tempos);
+      const start = Math.floor(mins/binSizeMin)*binSizeMin; const end = Math.ceil(maxs/binSizeMin)*binSizeMin;
+      const labels=[], counts=[];
+      for(let b=start; b<=end; b+=binSizeMin){ labels.push(`${b}-${b+binSizeMin}`); counts.push(0); }
+      tempos.forEach(t=>{ const idx = Math.min(labels.length-1, Math.floor((t-start)/binSizeMin)); counts[idx] += 1; });
+      return { labels, counts };
+    }
+
+    function computeHourStats(procs, sla){
+      const start=7, end=19; const buckets = Array.from({length:end-start}, ()=>[]);
+      procs.filter(p=>p.totalTime>0 && p.arrival).forEach(p=>{
+        const d=p.arrival; const dow=d.getDay(); if(dow===0||dow===6) return;
+        const h=d.getHours(); if(h<start||h>=end) return;
+        buckets[h-start].push(p.totalTime);
+      });
+      return buckets.map((arr,idx)=>{
+        const n=arr.length; const comp = n? Math.round(100*arr.filter(x=>x<=sla).length/n) : null;
+        const med = n? median(arr) : null; const hour = start+idx;
+        return { hour, label:`${String(hour).padStart(2,'0')}-${String(hour+1).padStart(2,'0')}`, n, comp, med };
+      });
+    }
+    const compColor = (pct, n)=> { if(pct==null) return '#27334a'; const hue = Math.round((pct/100)*120); const light = (n && n<3) ? 35 : 42; return `hsl(${hue},70%,${light}%)`; };
+
+    // ====================== RENDER ======================
+    function updateDisplay(){
+      if(!currentData) return;
+      const filters = { dateRange: dom.dateFilter.value, sala: dom.salaFilter.value, group: dom.groupFilter.value, sla: parseInt(dom.slaInput.value || '60',10), source: dom.sourceFilter.value };
+      dom.kpiSlaTarget.textContent = filters.sla;
+      dom.quadSlaTarget.textContent = filters.sla;
+      const filtered = filterData(currentData.analysis, filters);
+      renderDashboard(filtered, filters);
+    }
+
+    function renderDashboard(analysis, filters){
+      const allProcedures = Object.values(analysis).flatMap(s=>s.procedures);
+      const metrics = calcMetrics(allProcedures);
+      if(!metrics){ showState('error'); dom.errorMessage.textContent = "Nenhum dado válido para os filtros selecionados."; return; }
+      renderKPIs(metrics, filters.sla);
+      renderPerformance(analysis, filters, allProcedures);
+      renderParetoSegments(metrics);
+      renderAndon(analysis, filters.sla);
+      renderHistogram(allProcedures);
+      try { renderSourceCompare(allProcedures); } catch(_) {}
+      renderAlerts(allProcedures);
+      renderSlowCases(allProcedures);
+      renderQuadrant(analysis, filters.sla);
+      renderProcessFlow(analysis);
+      renderBottleneckHeatmap(analysis);
+      renderSMED(analysis);
+      renderSmartScheduling(allProcedures, filters.sla);
+      showState('content');
+    }
+
+    function renderKPIs(m, sla){
+      dom.kpiMediana.textContent = fmtMin(m.medianaGiro || 0);
+      dom.kpiP90.textContent = `P90: ${fmtMin(m.p90Giro || 0)}`;
+      const within = m.procedures.filter(p=> p.totalTime<=sla).length;
+      const pct = Math.round((within/m.procedures.length)*100);
+      dom.kpiSLA.textContent = `${pct}%`; dom.kpiSlaBar.style.width = `${pct}%`;
+      dom.kpiThroughput.textContent = (m.throughputDia||0).toFixed(1);
+      const gSeg = SEGMENTS.find(s=> s.key===m.gargalo.key);
+      dom.kpiGargalo.textContent = (!gSeg || m.gargalo.val==null) ? '--' : `${gSeg.label} • ${fmtMin(m.gargalo.val)}`;
+    }
+
+    function renderAndon(analysis, sla){
+      const salas = Object.keys(analysis);
+      const items = salas.map(s=>{
+        const procs = analysis[s].procedures.filter(p=>p.totalTime>0);
+        const pct = procs.length ? Math.round(100 * procs.filter(p=>p.totalTime<=sla).length / procs.length) : 0;
+        const color = pct>=80 ? 'green' : pct>=60 ? 'yellow' : 'red';
+        return `<li class="flex items-center justify-between glass-intense rounded-2xl px-4 py-3"><span class="flex items-center gap-3"><span class="dot ${color}"></span><b class="text-lg">${s}</b></span><span class="font-bold text-xl">${pct}%</span></li>`;
+      }).join('');
+      dom.andonList.innerHTML = items || '<p class="text-white/60 text-sm">Sem dados para exibir.</p>';
+    }
+
+    function renderPerformance(analysis, filters, allProcedures){
+      const ctx = document.getElementById('performance-over-time-chart').getContext('2d'); charts.performance?.destroy();
+      const agg = groupBuckets(allProcedures, filters.group);
+      const bandLabels = agg.map(b => b.key);
+      const bandP25 = agg.map(b => roundMin(b.p25));
+      const bandP75 = agg.map(b => roundMin(b.p75));
+      const labelSet = new Set(bandLabels);
+      const series = Object.keys(analysis).map(s=>{
+        const stats = groupBuckets(analysis[s].procedures, filters.group);
+        stats.forEach(it=>labelSet.add(it.key));
+        return { sala:s, arr:stats };
+      });
+      const allLabels = Array.from(labelSet).sort();
+      const labelsFmt = allLabels.map(key=>{
+        if(filters.group==='day'){ const [y,m,d]=key.split('-'); return `${d}/${m}`; }
+        if(filters.group==='week'){ return key.replace('-W',' • Sem '); }
+        if(filters.group==='month'){ const [y,m]=key.split('-'); return `${m}/${y.slice(-2)}`; }
+      });
+      const datasets = [];
+      if(agg.length){
+        const p25Aligned = allLabels.map(k => { const idx = bandLabels.indexOf(k); return idx>-1 ? bandP25[idx] : null; });
+        const p75Aligned = allLabels.map(k => { const idx = bandLabels.indexOf(k); return idx>-1 ? bandP75[idx] : null; });
+        datasets.push({ label:'p25', data:p25Aligned, borderColor:'rgba(0,0,0,0)', backgroundColor:'rgba(99,102,241,0.08)', fill:false, pointRadius:0, tension:.2, order:1 });
+        datasets.push({ label:'p75', data:p75Aligned, borderColor:'rgba(0,0,0,0)', backgroundColor:'rgba(99,102,241,0.18)', fill:'-1', pointRadius:0, tension:.2, order:1 });
+      }
+      series.forEach((s, i)=>{
+        const medAligned = allLabels.map(k => { const found = s.arr.find(it=> it.key===k); return found ? roundMin(found.med) : null; });
+        datasets.push({ label: s.sala, data: medAligned, borderColor: palette[i % palette.length], backgroundColor: palette[i % palette.length] + '26', spanGaps: true, tension: .3, order:2, borderWidth: 3, pointRadius: 5, pointHoverRadius: 8 });
+      });
+      charts.performance = new Chart(ctx,{
+        type:'line',
+        data:{ labels: labelsFmt, datasets },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display: true, labels:{ color:'#fff', font: { size: 14, weight: 'bold' } } },
+                    tooltip:{ backgroundColor: 'rgba(17, 26, 43, 0.95)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, callbacks:{ label:(c)=> `${c.dataset.label}: ${c.parsed.y} min` } } },
+          scales:{ y:{ ticks:{ callback:(v)=> `${roundMin(v)} min`, color:'rgba(255,255,255,0.85)', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'rgba(255,255,255,0.85)', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.05)' } } },
+          interaction: { intersect: false, mode: 'index' }
+        },
+        plugins:[ slaLine(()=>parseInt(dom.slaInput.value||'60',10)) ]
+      });
+    }
+
+    function renderParetoSegments(metrics){
+      const ctx = document.getElementById('pareto-segments-chart')?.getContext('2d'); if(!ctx) return; charts.pareto?.destroy();
+      const pairs = SEGMENTS.map(s => ({ label: s.label, key: s.key, val: metrics.segmentMedians[s.key] ?? null }))
+                            .filter(p => typeof p.val === 'number' && p.val > 0)
+                            .sort((a,b)=> b.val - a.val);
+      if(!pairs.length){ return; }
+      const labels = pairs.map(p => p.label);
+      const bars = pairs.map(p => Math.round(p.val));
+      const total = bars.reduce((a,b)=>a+b,0);
+      let running = 0; const cum = bars.map(v => { running += v; return Math.round((running/total)*100); });
+      charts.pareto = new Chart(ctx,{
+        type:'bar',
+        data:{ labels, datasets:[
+          { label:'Mediana (min)', data:bars, backgroundColor:'rgba(59,130,246,0.85)', yAxisID:'y', borderRadius:8, borderSkipped: false },
+          { type:'line', label:'Cumulativa (%)', data:cum, borderColor:'#22c55e', backgroundColor:'#22c55e', tension:.3, yAxisID:'y1', borderWidth: 3, pointRadius: 6 }
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:'#fff', font: { size: 14, weight: 'bold' } } },
+                    tooltip: { backgroundColor: 'rgba(17, 26, 43, 0.95)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1 } },
+          scales:{ y:{ position:'left', beginAtZero:true, ticks:{ color:'#fff', callback:v=>`${v} min`, font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   y1:{ position:'right', beginAtZero:true, max:100, ticks:{ color:'#fff', callback:v=>`${v}%`, font: { size: 12 } }, grid:{ display:false } },
+                   x:{ ticks:{ color:'#fff', font: { size: 11 } } } }
+        }
+      });
+    }
+
+    function renderHistogram(procs){
+      const ctx = document.getElementById('histogram-chart').getContext('2d'); charts.hist?.destroy();
+      const tempos = procs.filter(p=>p.totalTime>0).map(p=>p.totalTime);
+      const h = histogramData(tempos, BIN_SIZE_MIN);
+      charts.hist = new Chart(ctx,{
+        type:'bar',
+        data:{ labels:h.labels, datasets:[{ label:'Qtde', data:h.counts, backgroundColor:'rgba(59,130,246,0.8)', borderRadius:8, borderSkipped: false }]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false }, tooltip: { backgroundColor: 'rgba(17, 26, 43, 0.95)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1 } },
+          scales:{ y:{ beginAtZero:true, ticks:{ color:'rgba(255,255,255,0.85)', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'rgba(255,255,255,0.85)', font: { size: 11 } }, grid:{ color:'rgba(255,255,255,0.05)' } } }
+        }
+      });
+    }
+
+    function renderSourceCompare(procs){
+      const section = dom.sourceSection || document.getElementById('source-section'); if(!section) return;
+      const sources = uniq(procs.map(p=> p.source || 'App')).filter(Boolean);
+      if(sources.length <= 1){ section.classList.add('hidden'); charts.source?.destroy(); return; }
+      section.classList.remove('hidden');
+      const ctx = document.getElementById('source-compare-chart')?.getContext('2d'); if(!ctx) return; charts.source?.destroy();
+      const labels = sources;
+      const data = sources.map(s=>{
+        const tempos = procs.filter(p=> (p.source||'')===s && p.totalTime>0).map(p=>p.totalTime);
+        return tempos.length ? roundMin(median(tempos)||0) : 0;
+      });
+      charts.source = new Chart(ctx,{
+        type:'bar',
+        data:{ labels, datasets:[{ label:'Mediana do Giro (min)', data, backgroundColor:'rgba(16,185,129,0.85)', borderRadius:8, borderSkipped: false }]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false },
+            tooltip:{ backgroundColor: 'rgba(17, 26, 43, 0.95)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, callbacks:{ label:(c)=> `${c.parsed.y} min` } } },
+          scales:{ y:{ beginAtZero:true, ticks:{ callback:(v)=> `${roundMin(v)} min`, color:'rgba(255,255,255,0.85)', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'rgba(255,255,255,0.85)', font: { size: 11 } }, grid:{ color:'rgba(255,255,255,0.05)' } } }
+        }
+      });
+    }
+
+    function renderAlerts(procs){
+      const counts = {}; const viols = [];
+      procs.forEach(p=>{
+        SEGMENTS.forEach(seg=>{
+          const lim = ALERT_LIMITS_SEG[seg.key]; const v = p.segments[seg.key];
+          if(typeof lim==='number' && typeof v==='number' && v>lim){
+            counts[seg.key] = (counts[seg.key]||0)+1;
+            viols.push({ date:p.date, sala:p.sala, seg, time:v });
+          }
+        });
+      });
+      const sumHtml = SEGMENTS.map(seg=>{
+        const n = counts[seg.key]||0; const lim = ALERT_LIMITS_SEG[seg.key];
+        return `<span class="inline-block mr-4 mb-3 glass-intense px-4 py-2 rounded-2xl font-semibold">${seg.label} &gt; ${lim} min: <b class="text-red-400">${n}</b></span>`;
+      }).join('');
+      dom.alertsSummary.innerHTML = sumHtml || '<span class="text-white/60">Sem violações dentro do filtro.</span>';
+      viols.sort((a,b)=> b.time - a.time);
+      const top = viols.slice(0,3).map(v=>{
+        const d = v.date.toLocaleDateString('pt-BR');
+        return `<tr class="hover:bg-white/5 transition-colors"><td class="py-3">${d}</td><td class="py-3">${v.sala}</td><td class="py-3">${v.seg.label}</td><td class="py-3 font-bold text-red-400">${fmtMin(v.time)}</td></tr>`;
+      }).join('');
+      dom.alertsTop.innerHTML = top || '<tr><td colspan="4" class="py-3 text-white/60">Sem violações no período.</td></tr>';
+    }
+
+    function renderSlowCases(procs){
+      const sorted = procs.filter(p=>p.totalTime>0).sort((a,b)=>b.totalTime - a.totalTime).slice(0,5);
+      const rows = sorted.map(p=>{
+        const entries = SEGMENTS.map(seg=>({ seg, val:p.segments[seg.key] })).filter(e=> typeof e.val==='number' && e.val>0);
+        const worst = entries.length ? entries.reduce((acc,e)=> e.val>acc.val?e:acc,{seg:{label:'--'},val:0}) : {seg:{label:'--'},val:0};
+        const d = p.date.toLocaleDateString('pt-BR');
+        return `<tr class="hover:bg-white/5 transition-colors"><td class="py-3">${d}</td><td class="py-3">${p.sala}</td><td class="py-3">${p.source||'-'}</td><td class="py-3 font-bold text-red-400">${fmtMin(p.totalTime)}</td><td class="py-3">${worst.seg.label==='--' ? '--' : `${worst.seg.label} • ${fmtMin(worst.val)}`}</td></tr>`;
+      }).join('');
+      dom.slowCasesBody.innerHTML = rows || `<tr><td class="py-3" colspan="5">Sem casos no período.</td></tr>`;
+    }
+
+    function exportCSVAboveP90(){
+      const all = Object.values(currentFiltered.analysis).flatMap(s=>s.procedures).filter(p=>p.totalTime>0);
+      const tempos = all.map(p=>p.totalTime); const p90 = percentile(tempos, 90) || 0;
+      const high = all.filter(p=>p.totalTime > p90);
+      if(!high.length){ alert('Não há casos acima do P90 no filtro atual.'); return; }
+      const headers = ['Data','Sala','Fonte','Giro (min)','Segmento Limitante','Tempo Segmento (min)', ...SEGMENTS.map(s=>s.label)];
+      const rows = high.map(p=>{
+        const entries = SEGMENTS.map(seg=>({ seg, val:p.segments[seg.key] })).filter(e=> typeof e.val==='number' && e.val>0);
+        const worst = entries.length ? entries.reduce((acc,e)=> e.val>acc.val?e:acc,{seg:{label:'--'},val:0}) : {seg:{label:'--'},val:0};
+        const cols = SEGMENTS.map(seg=> p.segments[seg.key] ? roundMin(p.segments[seg.key]) : '');
+        return [p.date.toLocaleDateString('pt-BR'), p.sala, p.source||'', roundMin(p.totalTime), worst.seg.label, roundMin(worst.val), ...cols].join(',');
+      });
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob(["\uFEFF"+csv], { type:'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; const ts = new Date().toISOString().slice(0,19).replace(/[-T:]/g,'');
+      a.download = `hemo_casos_acima_P90_${ts}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    function renderQuadrant(analysis, sla){
+      const ctx = document.getElementById('efficiency-quadrant-chart').getContext('2d'); charts.efficiencyQuadrant?.destroy();
+      const datasets = []; const points = [];
+      Object.keys(analysis).forEach((salaName,i)=>{
+        const m = calcMetrics(analysis[salaName].procedures); if(!m) return;
+        datasets.push({ label:salaName, data:[{ x:m.totalProcedimentos, y:roundMin(m.medianaGiro||0) }], backgroundColor: palette[i % palette.length], pointRadius:12, pointHoverRadius:16 });
+        points.push({x:m.totalProcedimentos, y:m.medianaGiro||0});
+      });
+      if(!datasets.length){ return; }
+      const avgX = safeAvg(points.map(p=>p.x));
+      const avgY = safeAvg(points.map(p=>p.y));
+      const quadrantBorders = {
+        id:'quadrantBorders',
+        beforeDatasetsDraw(chart){
+          const { ctx, chartArea:{ left, top, right, bottom }, scales:{ x, y } } = chart;
+          ctx.save();
+          ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=2; ctx.setLineDash([8,8]);
+          ctx.beginPath();
+          ctx.moveTo(x.getPixelForValue(avgX), top); ctx.lineTo(x.getPixelForValue(avgX), bottom);
+          ctx.moveTo(left, y.getPixelForValue(avgY)); ctx.lineTo(right, y.getPixelForValue(avgY));
+          ctx.stroke();
+          ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='bold 14px Poppins'; ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText('ALTA EFICIÊNCIA',(right+x.getPixelForValue(avgX))/2,(top+y.getPixelForValue(avgY))/2);
+          ctx.fillText('SOBRECARGA',(left+x.getPixelForValue(avgX))/2,(top+y.getPixelForValue(avgY))/2);
+          ctx.fillText('OPORTUNIDADE',(right+x.getPixelForValue(avgX))/2,(bottom+y.getPixelForValue(avgY))/2);
+          ctx.fillText('BAIXA EFICIÊNCIA',(left+x.getPixelForValue(avgX))/2,(bottom+y.getPixelForValue(avgY))/2);
+          ctx.restore();
+        }
+      };
+      charts.efficiencyQuadrant = new Chart(ctx,{
+        type:'scatter', data:{ datasets },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:true, labels:{ color:'#fff', font: { size: 14, weight: 'bold' } } },
+                    tooltip:{ backgroundColor: 'rgba(17, 26, 43, 0.95)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, callbacks:{ label:(c)=> `${c.dataset.label}: ${c.raw.x} procs • ${roundMin(c.raw.y)} min` } } },
+          scales:{ x:{ title:{ display:true, text:'Volume de Procedimentos', color:'#fff', font: { size: 14, weight: 'bold' } }, ticks:{ color:'#fff', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   y:{ title:{ display:true, text:'Tempo Mediano de Giro (min)', color:'#fff', font: { size: 14, weight: 'bold' } }, ticks:{ color:'#fff', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } } }
+        },
+        plugins:[ quadrantBorders, slaLine(()=> parseInt(dom.slaInput.value||'60',10)) ]
+      });
+    }
+
+    function renderProcessFlow(analysis){
+      const ctx = document.getElementById('process-flow-comparison-chart').getContext('2d'); charts.processFlow?.destroy();
+      const labels = SEGMENTS.map(s=>s.label);
+      const datasets = Object.keys(analysis).map((salaName, i)=>{
+        const m = calcMetrics(analysis[salaName].procedures);
+        return {
+          label: salaName,
+          data: m ? SEGMENTS.map(seg => m.segmentMedians[seg.key]!=null ? roundMin(m.segmentMedians[seg.key]) : null) : [],
+          backgroundColor: palette[i % palette.length] + 'dd', borderRadius: 8, borderSkipped: false
+        };
+      }).filter(ds => ds.data.length > 0);
+      if(!datasets.length){ return; }
+      charts.processFlow = new Chart(ctx,{
+        type:'bar', data:{ labels, datasets },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:'top', labels:{ color:'#fff', font: { size: 14, weight: 'bold' } } },
+                    tooltip:{ backgroundColor: 'rgba(17, 26, 43, 0.95)', titleColor: '#fff', bodyColor: '#fff', borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, callbacks:{ label:(c)=> `${c.dataset.label}: ${c.parsed.y} min` } } },
+          scales:{ y:{ beginAtZero:true, title:{ display:true, text:'Tempo (minutos)', color:'#fff', font: { size: 14, weight: 'bold' } }, ticks:{ callback:(v)=> `${roundMin(v)} min`, color:'#fff', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'#fff', font: { size: 11 } } } }
+        }
+      });
+    }
+
+    function renderBottleneckHeatmap(analysis){
+      const container = document.getElementById('bottleneck-heatmap'); container.innerHTML = '';
+      const allProcs = Object.values(analysis).flatMap(s=>s.procedures).filter(p=>p.totalTime>0);
+      const globalMed = {};
+      SEGMENTS.forEach(seg=>{
+        const vals = allProcs.map(p=>p.segments[seg.key]).filter(v=> typeof v==='number' && v>0);
+        globalMed[seg.key] = vals.length ? median(vals) : null;
+      });
+      let html = `<div class="overflow-x-auto"><table class="min-w-full text-sm border-separate" style="border-spacing: 8px;"><thead><tr><th class="text-left py-3 px-4 glass-intense rounded-l-2xl font-bold text-lg">Segmento \\ Sala</th>`;
+      Object.keys(analysis).forEach(s=> html += `<th class="py-3 px-4 glass-intense font-bold text-lg">${s}</th>`);
+      html += `</tr></thead><tbody>`;
+      SEGMENTS.forEach(seg=>{
+        html += `<tr class="transition-all duration-300 hover:scale-105"><td class="py-3 px-4 font-bold glass-intense rounded-l-2xl">${seg.label}</td>`;
+        Object.keys(analysis).forEach(s=>{
+          const vals = analysis[s].procedures.map(p=>p.segments[seg.key]).filter(v=> typeof v==='number' && v>0);
+          const med = vals.length ? median(vals) : null;
+          if(med==null || globalMed[seg.key]==null){
+            html += `<td class="py-3 px-4 text-white/50 glass-intense rounded-xl">—</td>`;
+          } else {
+            const ratio = Math.min(2, Math.max(0, med/(globalMed[seg.key]||1)));
+            const hue = Math.max(0, 120 - (ratio-1)*120);
+            const bg = `hsl(${hue}, 70%, 25%)`; const border = `hsl(${hue}, 70%, 35%)`;
+            const lim = ALERT_LIMITS_SEG[seg.key]; const warn = (typeof lim==='number' && med>lim) ? ' ⚠️' : '';
+            html += `<td class="py-3 px-4 font-bold glass-intense rounded-xl" style="background:${bg}; border:2px solid ${border};">${fmtMin(med)}${warn}</td>`;
+          }
+        });
+        html += `</tr>`;
+      });
+      html += `</tbody></table></div>`;
+      container.innerHTML = html;
+    }
+
+    function renderSMED(analysis){
+      const ctx = document.getElementById('smed-stacked-chart').getContext('2d'); charts.smed?.destroy();
+      const salas = Object.keys(analysis); const externoArr = []; const internoArr = [];
+      salas.forEach(s=>{
+        const internos = [], externos = [];
+        analysis[s].procedures.forEach(p=>{
+          const inVals = ['entr_iniCob','cobertura','pos_cob','proc'].map(k=>p.segments[k]); if(inVals.every(v => typeof v==='number' && v>0)) internos.push(inVals.reduce((a,b)=>a+b,0));
+          const exVals = ['cheg_entr','pos_proc','saida_iniLimp','limpeza'].map(k=>p.segments[k]); if(exVals.every(v => typeof v==='number' && v>0)) externos.push(exVals.reduce((a,b)=>a+b,0));
+        });
+        internoArr.push(internos.length ? roundMin(median(internos)) : 0);
+        externoArr.push(externos.length ? roundMin(median(externos)) : 0);
+      });
+      charts.smed = new Chart(ctx,{
+        type:'bar',
+        data:{ labels: salas, datasets:[
+          { label:'Externo', data: externoArr, backgroundColor:'rgba(239,68,68,0.85)', stack:'smed', borderRadius:8, borderSkipped: false },
+          { label:'Em Sala', data: internoArr, backgroundColor:'rgba(59,130,246,0.85)', stack:'smed', borderRadius:8, borderSkipped: false }
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:'#fff', font: { size: 14, weight: 'bold' } } },
+                    tooltip:{ backgroundColor: 'rgba(17, 26, 43, 0.95)', callbacks:{ label:(c)=> `${c.dataset.label}: ${c.parsed.y} min` } } },
+          scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>`${roundMin(v)} min`, color:'#fff', font: { size: 12 } }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'#fff', font: { size: 12 } } } }
+        }
+      });
+    }
+
+    function renderSmartScheduling(procs, sla){
+      const stats = computeHourStats(procs, sla);
+      const ranked = stats.filter(s=> s.comp!=null).sort((a,b)=>{
+        if(b.comp !== a.comp) return b.comp - a.comp;
+        const am = a.med ?? 1e9, bm = b.med ?? 1e9; return am - bm;
+      }).slice(0,5);
+      const listHtml = ranked.map(s=>{
+        const bg = compColor(s.comp, s.n);
+        return `<li class="flex items-center justify-between rounded-2xl px-4 py-3" style="background:${bg};"><span class="font-bold text-lg">${s.label}</span><span class="text-right"><span class="font-black text-xl">${s.comp}%</span><span class="ml-3 text-white/80 font-medium">Med: ${s.med!=null? fmtMin(s.med):'—'}</span></span></li>`;
+      }).join('') || '<p class="text-white/60 text-sm">Sem dados suficientes.</p>';
+      document.getElementById('top-hours-list').innerHTML = listHtml;
+      const ctx = document.getElementById('hour-compliance-chart').getContext('2d'); charts.hourComp?.destroy();
+      charts.hourComp = new Chart(ctx,{
+        type:'bar',
+        data:{ labels: stats.map(s=> s.label),
+          datasets:[{ label:'Conformidade (%)', data: stats.map(s=> s.comp ?? 0), backgroundColor: stats.map(s=> compColor(s.comp, s.n)), borderRadius:8, borderSkipped: false }]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(c)=> `Conformidade: ${c.parsed.y}%` } } },
+          scales:{ y:{ beginAtZero:true, max:100, ticks:{ color:'#fff' }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'#fff' } } }
+        }
+      });
+    }
+
+    function showState(state){
+      dom.loadingState.style.display = state==='loading' ? 'block':'none';
+      dom.errorState.style.display = state==='error' ? 'block':'none';
+      dom.dashboardContent.style.display = state==='content' ? 'block':'none';
+    }
+
+    // ---- bootstrap
+    initializeEventListeners();
+    if(!restoreSession()){ /* mostra tela de login */ }
+  </script>
+
+  <!-- NOVO: Script para interatividade da UI (Sidebar e Perfil) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('dashboard-main');
+      const pinBtn = document.getElementById('sidebar-pin-btn');
+      const profileBtn = document.getElementById('user-profile-btn');
+      const profileDropdown = document.getElementById('user-profile-dropdown');
+
+      if (pinBtn) {
+        pinBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('sidebar-collapsed');
+          mainContent.classList.toggle('main-content-collapsed');
+          mainContent.classList.toggle('main-content-shifted');
+        });
+      }
+
+      if (profileBtn) {
+          profileBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              profileDropdown.classList.toggle('hidden');
+          });
+      }
+
+      document.addEventListener('click', (e) => {
+          if (profileDropdown && !profileDropdown.classList.contains('hidden')) {
+              if (!profileBtn.contains(e.target)) {
+                  profileDropdown.classList.add('hidden');
+              }
+          }
+      });
+      
+      const originalSetupUserInterface = window.setupUserInterface;
+      window.setupUserInterface = function() {
+          originalSetupUserInterface();
+          const user = window.currentUser;
+          if (user) {
+              const avatar = document.getElementById('user-avatar');
+              const userName = document.getElementById('logged-user-name');
+              const userRole = document.getElementById('logged-user-role');
+              if (avatar) avatar.textContent = user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+              if (userName) userName.textContent = user.name;
+              if (userRole) userRole.textContent = user.role;
+          }
+      };
+    });
+  </script>
+</body>
+</html>
