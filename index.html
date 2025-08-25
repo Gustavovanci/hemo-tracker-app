@@ -13,41 +13,12 @@
     
     <link href="output.css" rel="stylesheet">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
-    <!-- NOVO: Estilos para o guia visual da câmara -->
-    <style>
-        .camera-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            overflow: hidden;
-            border-radius: 0.75rem; /* rounded-xl */
-            background-color: #000;
-        }
-        .camera-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0; /* Começa invisível até a câmara ligar */
-            transition: opacity 0.5s;
-        }
-        .camera-container::after {
-            content: '';
-            position: absolute;
-            top: 10%;
-            left: 10%;
-            width: 80%;
-            height: 80%;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); /* Cria uma vinheta para focar a visão */
-            border-radius: 0.5rem;
-        }
-    </style>
 </head>
 <body class="relative">
 
     <main class="app-container">
         
+        <!-- ETAPA 0: BEM-VINDO -->
         <section id="step-welcome" class="step-container">
             <div class="step-card">
                 <div class="step-header text-center">
@@ -59,16 +30,15 @@
             </div>
         </section>
         
+        <!-- ETAPA 1: SCANNER / ID MANUAL -->
         <section id="step-scanner" class="step-container" style="display: none;">
             <div class="step-card">
                 <div class="step-header">
                     <h2 class="step-title">Identificação</h2>
-                    <p class="step-subtitle">Centralize o código na área marcada.</p>
+                    <p class="step-subtitle">Aponte a câmara para o código.</p>
                 </div>
-                <!-- NOVO: Container para o vídeo e para o guia visual -->
-                <div class="camera-container">
-                    <video id="video-preview" class="camera-preview"></video>
-                </div>
+                <!-- ALTERAÇÃO: Trocamos a <div> por uma <video> para melhor performance -->
+                <video id="video-preview" class="camera-preview"></video>
                 <p class="text-center my-4 text-white/70">ou</p>
                 <div class="input-group">
                     <input type="text" id="patient-id-input" placeholder="DIGITE O ID DO PACIENTE" class="input-field">
@@ -77,6 +47,7 @@
             </div>
         </section>
 
+        <!-- Outras seções do seu HTML (sem alterações) -->
         <section id="step-room-selection" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <h2 class="step-title">Paciente: <span id="patient-id-display" class="text-white">--</span></h2>
@@ -129,10 +100,11 @@
 
     <footer class="absolute bottom-4 text-center w-full">
         <a href="./painel-gestor.html" target="_blank" class="text-white/50 text-sm hover:text-white/80 transition-colors">
-            Acesso ao Painel Gestor
+            Aceder ao Painel Gestor
         </a>
     </footer>
 
+    <!-- ALTERAÇÃO: Trocamos a biblioteca do scanner -->
     <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/zxing.min.js"></script>
     <script src="script.js"></script>
 </body>

@@ -1,7 +1,6 @@
 /*
-  HemoFlow Coletor v6.1
-  - Scanner de código de barras otimizado com "hints" para performance e precisão.
-  - Adicionado feedback visual e melhor tratamento de erros da câmara.
+  HemoFlow Coletor v6.0
+  - Scanner de código de barras atualizado para ZXing-js para melhor performance e robustez.
 */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stepTimes: {},
   };
 
-  // --- Variáveis para o controlo do scanner ---
+  // --- NOVO: Variáveis para o controlo do scanner ---
   let codeReader = null;
   let isScanning = false;
 
@@ -101,60 +100,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- CONTROLO DO SCANNER (LÓGICA OTIMIZADA) ---
+  // --- CONTROLO DO SCANNER (LÓGICA ATUALIZADA) ---
 
   /**
-   * Inicia o scanner de código de barras usando a biblioteca ZXing com otimizações.
+   * Inicia o scanner de código de barras usando a biblioteca ZXing.
    */
   async function startScanner() {
     if (isScanning) return;
     
-    // Adiciona "dicas" para o leitor focar nos códigos mais comuns e tentar com mais afinco.
-    const hints = new Map();
-    const formats = [
-        ZXing.BarcodeFormat.QR_CODE,
-        ZXing.BarcodeFormat.CODE_128,
-        ZXing.BarcodeFormat.EAN_13,
-        ZXing.BarcodeFormat.DATA_MATRIX
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-    codeReader = new ZXing.BrowserMultiFormatReader(hints);
+    codeReader = new ZXing.BrowserMultiFormatReader();
     isScanning = true;
 
     try {
+      // Pede permissão e lista as câmaras disponíveis
       const videoInputDevices = await codeReader.listVideoInputDevices();
-      if (videoInputDevices.length === 0) {
-          console.error("Nenhuma câmara encontrada.");
-          alert("Nenhuma câmara foi encontrada. Por favor, verifique as permissões do seu navegador.");
-          isScanning = false;
-          return;
-      }
-
+      // Usa a câmara traseira por defeito, se disponível
       const selectedDeviceId = videoInputDevices.length > 1 
           ? videoInputDevices.find(device => device.label.toLowerCase().includes('back'))?.deviceId || videoInputDevices[0].deviceId
           : videoInputDevices[0].deviceId;
 
       console.log(`A iniciar scanner com o dispositivo: ${selectedDeviceId}`);
       
-      const videoElement = document.getElementById('video-preview');
-      
-      // Adiciona um feedback visual de que a câmara está ativa
-      videoElement.style.opacity = 1;
-
+      // Começa a descodificar o vídeo da câmara
       codeReader.decodeFromVideoDevice(selectedDeviceId, 'video-preview', (result, err) => {
         if (result) {
+          // Se um código for lido com sucesso
           console.log("Código de barras encontrado!", result);
           onScanSuccess(result.getText());
         }
         if (err && !(err instanceof ZXing.NotFoundException)) {
+          // Se ocorrer um erro que não seja "código não encontrado"
           console.error("Erro no scanner:", err);
         }
       });
     } catch (err) {
       console.error("Erro ao obter permissão da câmara ou iniciar o scanner:", err);
-      alert("Não foi possível aceder à câmara. Por favor, verifique se deu permissão no seu navegador.");
       isScanning = false;
     }
   }
@@ -164,17 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
    */
   function stopScanner() {
     if (codeReader) {
-      codeReader.reset();
+      codeReader.reset(); // Para a câmara e o processo de scan
       codeReader = null;
       isScanning = false;
       console.log("Scanner parado.");
-      const videoElement = document.getElementById('video-preview');
-      if(videoElement) videoElement.style.opacity = 0;
     }
   }
 
   /**
    * Chamado quando um código é lido com sucesso.
+   * @param {string} decodedText O texto do código de barras.
    */
   function onScanSuccess(decodedText) {
     if (isScanning) {
@@ -186,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- FLUXO DA APLICAÇÃO ---
 
+  // Mostra um passo específico e esconde os outros
   function showStep(stepId) {
     document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
     const currentStepElement = document.getElementById(`step-${stepId}`);
@@ -201,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Avança para o próximo passo na sequência
   function nextStep() {
     const currentDef = STEP_DEFINITIONS.find(s => s.id === appState.currentStepId);
     if (currentDef) {
@@ -209,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Processa o ID inserido manualmente
   function submitManualId() {
     const patientIdInput = document.getElementById('patient-id-input');
     const patientId = patientIdInput.value.trim().toUpperCase();
@@ -216,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     processPatientId(patientId);
   }
 
+  // Processa o ID do paciente (seja do scanner ou manual)
   function processPatientId(patientId) {
     appState.patientId = patientId;
     const displayElement = document.getElementById('patient-id-display');
@@ -223,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showStep('room-selection');
   }
 
+  // Marca o tempo de um passo da timeline
   function markTimelineStep(stepIndex, button) {
     const now = new Date();
     appState.stepTimes[stepIndex] = now.toISOString();
@@ -237,12 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => nextStep(), 500);
   }
 
+  // Valida o formulário final para ativar o botão de guardar
   function validateFinalForm() {
     const saveBtn = document.getElementById('save-btn');
     const destinoSelect = document.getElementById('destino-select');
     if(saveBtn && destinoSelect) saveBtn.disabled = !destinoSelect.value;
   }
 
+  // Envia os dados para o Google Sheets
   async function saveToGoogleSheets() {
     const loadingOverlay = document.getElementById('loading-overlay');
     const showLoading = (isLoading) => {
@@ -278,9 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Reinicia a aplicação
   function resetSystem() {
     window.location.reload();
   }
 
+  // Inicia a aplicação
   init();
 });
