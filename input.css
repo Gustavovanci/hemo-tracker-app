@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Novo Tema de Cores - InCor */
+    --incor-blue: #005a9c;
+    --incor-red: #d41a2d;
+    --incor-light-blue: #4a90e2;
+    --incor-dark-blue: #003e6e;
+    --success: #28a745;
+    
+    --gradient-bg: linear-gradient(135deg, var(--incor-dark-blue) 0%, var(--incor-blue) 100%);
+    --shadow-strong: 0 10px 30px rgba(0, 0, 0, 0.2);
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--gradient-bg);
+    color: white;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .app-container {
+    @apply w-full;
+  }
+  .step-container {
+    @apply min-h-screen flex items-center justify-center p-4;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  .step-card {
+    @apply w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 sm:p-8 shadow-lg;
+  }
+  .step-header { @apply text-center mb-6; }
+  .step-number {
+    @apply inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 text-xl font-bold bg-white/20 text-white;
+  }
+  .step-title {
+    @apply text-3xl md:text-4xl font-black text-white;
+  }
+  .step-subtitle { @apply text-lg text-white/80 mt-2; }
+
+  .btn-revolutionary {
+    @apply w-full text-center px-6 py-4 text-lg font-bold text-white rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/50;
+  }
+  .btn-primary { @apply bg-incor-red hover:bg-red-700; }
+  .btn-success { @apply bg-success hover:bg-green-700; }
+  .btn-room {
+      @apply bg-white/10 border-2 border-white/30 hover:bg-white/20 text-xl py-5;
+  }
+  .btn-revolutionary:disabled { @apply opacity-50 cursor-not-allowed transform-none hover:scale-100; }
+
+  .camera-preview {
+    @apply rounded-xl overflow-hidden w-full aspect-video bg-black;
+    border: 2px solid var(--incor-light-blue);
+  }
+
+  /* UX/UI Melhorada para o Input */
+  .input-field {
+    @apply w-full px-4 py-4 text-lg text-center font-bold rounded-xl transition-all duration-300;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1a1a2e; /* Texto escuro para ser visível */
+    border: 2px solid transparent;
+  }
+  .input-field:focus {
+    @apply outline-none ring-4 ring-incor-light-blue/50 border-incor-light-blue;
+  }
+  .input-field::placeholder { color: #555; }
+
+  .form-select {
+    @apply w-full px-4 py-3 text-lg rounded-xl appearance-none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1a1a2e;
+  }
+  
+  .time-display {
+    @apply text-center text-2xl my-6 text-white/80;
+  }
+
+  .loading-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm;
+  }
+  .loading-spinner {
+    @apply w-12 h-12 border-4 border-white/20 rounded-full border-t-white;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
