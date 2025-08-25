@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>HemoFlow v4 - Revolutionary</title>
-    <meta name="theme-color" content="#1a1a2e">
+    <title>HemoFlow - Coletor</title>
+    <meta name="theme-color" content="#005a9c">
     <link rel="manifest" href="manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,69 +14,76 @@
     <link href="output.css" rel="stylesheet">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
-<body>
+<body class="relative">
 
-    <!-- Indicador de Progresso Fixo -->
-    <div class="progress-indicator">
-        <div class="progress-circle">
-            <span id="current-step-indicator">1</span>
-        </div>
-    </div>
-
-    <!-- Container para os Steps -->
     <main class="app-container">
         
         <!-- ETAPA 0: BEM-VINDO -->
-        <section id="step-welcome" class="step-container" style="display: none;">
+        <section id="step-welcome" class="step-container">
             <div class="step-card">
-                <div class="step-header">
-                    <div class="step-number">🫀</div>
-                    <h1 class="step-title">HemoFlow</h1>
-                    <p class="step-subtitle">Interface Revolucionária v4.0</p>
+                <div class="step-header text-center">
+                    <!-- Caminho robusto (barra normal e espaço escapado) -->
+                    <img src="../icons/Logo%20incor.png" alt="Logo InCor" class="h-16 mx-auto mb-4">
+                    <h1 class="step-title">HemoFlow Coletor</h1>
+                    <p class="step-subtitle">Registro de Tempos de Procedimento</p>
                 </div>
-                <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Atendimento</button>
-                <button id="view-dashboard-btn-welcome" class="btn-revolutionary secondary mt-4">Ver Dashboard</button>
+                <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Novo Registro</button>
             </div>
         </section>
         
-        <!-- ETAPA 1: SCANNER -->
+        <!-- ETAPA 1: SCANNER / ID MANUAL -->
         <section id="step-scanner" class="step-container" style="display: none;">
             <div class="step-card">
                 <div class="step-header">
                     <h2 class="step-title">Identificação</h2>
-                    <p class="step-subtitle">Escaneie ou insira o ID.</p>
+                    <p class="step-subtitle">Escaneie o código ou digite o ID.</p>
                 </div>
-                <div id="reader" class="camera-preview" style="display: none;"></div>
-                <div class="input-buttons mt-4">
-                    <button id="scan-btn" class="btn-revolutionary btn-primary flex-1">Ativar Scanner</button>
-                </div>
-                <div class="input-group mt-6">
-                    <input type="text" id="patient-id-input" placeholder="OU DIGITE O ID" class="input-field">
+                <div id="reader" class="camera-preview"></div>
+                <p class="text-center my-4 text-white/70">ou</p>
+                <div class="input-group">
+                    <input type="text" id="patient-id-input" placeholder="DIGITE O ID DO PACIENTE" class="input-field">
                     <button id="manual-submit-btn" class="btn-revolutionary btn-success mt-4">Confirmar ID</button>
                 </div>
             </div>
         </section>
 
-        <!-- ETAPA 2: PACIENTE -->
-        <section id="step-patient" class="step-container" style="display: none;">
+        <!-- ETAPA 2: SELEÇÃO DE SALA -->
+        <section id="step-room-selection" class="step-container" style="display: none;">
             <div class="step-card text-center">
-                 <h2 class="step-title">Paciente Confirmado</h2>
-                 <p id="patient-id-display" class="text-5xl font-black text-amber-300 my-4">--</p>
-                 <button id="start-timeline-btn" class="btn-revolutionary btn-primary mt-6">Iniciar Timeline</button>
+                 <h2 class="step-title">Paciente: <span id="patient-id-display" class="text-white">--</span></h2>
+                 <p class="step-subtitle mt-2 mb-8">Selecione a sala do procedimento.</p>
+                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                     <button class="btn-revolutionary btn-room" data-sala="Sala 1">Sala 1</button>
+                     <button class="btn-revolutionary btn-room" data-sala="Sala 2">Sala 2</button>
+                     <button class="btn-revolutionary btn-room" data-sala="Sala 3">Sala 3</button>
+                     <button class="btn-revolutionary btn-room" data-sala="Sala 4">Sala 4</button>
+                     <button class="btn-revolutionary btn-room" data-sala="Sala 5">Sala 5</button>
+                 </div>
             </div>
         </section>
         
-        <!-- TIMELINE (Gerado dinamicamente) -->
+        <!-- TIMELINE (Gerado dinamicamente no script.js) -->
 
         <!-- ETAPA FINAL -->
         <section id="step-final" class="step-container" style="display: none;">
             <div class="step-card">
                 <h2 class="step-title text-center">Finalização</h2>
-                <div class="space-y-4 mt-6">
-                    <select id="sala-select" class="form-select"><option value="">Selecione a sala...</option><option value="Sala 1">Sala 1</option><option value="Sala 2">Sala 2</option></select>
-                    <select id="leito-select" class="form-select"><option value="">Selecione o destino...</option><option value="Recuperação">Recuperação</option><option value="UTI">UTI</option></select>
-                    <textarea id="observations" class="input-field !text-base text-left" placeholder="Observações (opcional)..." rows="3"></textarea>
-                    <button id="save-btn" class="btn-revolutionary btn-success" disabled>Salvar Atendimento</button>
+                <div class="space-y-6 mt-6">
+                    <div>
+                        <label class="block text-white/80 mb-2">Destino do Paciente</label>
+                        <select id="destino-select" class="form-select">
+                            <option value="">Selecione...</option>
+                            <option value="Recuperação">Recuperação</option>
+                            <option value="UTI">UTI</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-white/80 mb-2">Observações (opcional)</label>
+                        <textarea id="observations" class="input-field !text-base text-left" placeholder="..." rows="3"></textarea>
+                    </div>
+                    <button id="save-btn" class="btn-revolutionary btn-success" disabled>Concluir e Salvar</button>
                 </div>
             </div>
         </section>
@@ -85,65 +92,24 @@
         <section id="step-success" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <div class="text-8xl mb-4">✅</div>
-                 <h2 class="step-title">Salvo com Sucesso!</h2>
-                 <p class="step-subtitle">O atendimento foi registrado.</p>
-                 <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Iniciar Novo Atendimento</button>
-                 <button id="view-dashboard-btn-success" class="btn-revolutionary secondary mt-4">Ver Dashboard</button>
-            </div>
-        </section>
-
-        <!-- ETAPA DE DASHBOARD -->
-        <section id="step-dashboard" class="step-container" style="display: none;">
-            <div class="step-card">
-                <div class="step-header">
-                    <h2 class="step-title">Dashboard de Análise</h2>
-                    <p class="step-subtitle">Métricas e KPIs dos atendimentos.</p>
-                </div>
-                
-                <div id="dashboard-content">
-                    <!-- KPIs Principais -->
-                    <div class="grid grid-cols-2 gap-4 mb-6 text-center">
-                        <div class="p-4 bg-white/10 rounded-xl">
-                            <div class="text-4xl font-bold text-accent" id="kpi-total-hoje">0</div>
-                            <div class="text-sm text-white/60">Atendimentos Hoje</div>
-                        </div>
-                        <div class="p-4 bg-white/10 rounded-xl">
-                            <div class="text-4xl font-bold" id="kpi-tempo-medio">0<span class="text-xl"> min</span></div>
-                            <div class="text-sm text-white/60">Tempo Médio Total</div>
-                        </div>
-                    </div>
-
-                    <!-- Análise de Etapas -->
-                    <div class="mb-6">
-                        <h3 class="text-xl font-bold mb-2 text-center">Análise de Gargalos</h3>
-                        <div class="p-4 bg-white/10 rounded-xl text-center">
-                            <div class="text-sm text-white/60">Etapa Mais Lenta (Média)</div>
-                            <div class="text-2xl font-bold text-danger" id="kpi-gargalo">--</div>
-                        </div>
-                    </div>
-
-                    <!-- Gráfico -->
-                    <div>
-                        <h3 class="text-xl font-bold mb-2 text-center">Tempo Médio por Etapa</h3>
-                        <canvas id="etapasChart"></canvas>
-                    </div>
-                </div>
-
-                <div id="dashboard-loading" class="text-center py-10" style="display: none;">
-                    <div class="loading-spinner inline-block"></div>
-                    <p class="mt-4 text-white/70">Carregando dados da planilha...</p>
-                </div>
-
-                <button id="back-to-welcome-btn" class="btn-revolutionary btn-primary mt-8">Voltar ao Início</button>
+                 <h2 class="step-title">Registro Salvo!</h2>
+                 <p class="step-subtitle">Os dados foram enviados para o Painel Gestor.</p>
+                 <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Registrar Novo Paciente</button>
             </div>
         </section>
 
     </main>
     
-    <div id="toast-container" class="toast-container"></div>
     <div id="loading-overlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Link para o Painel Gestor -->
+    <footer class="absolute bottom-4 text-center w-full">
+        <!-- Link direto para o HTML do painel (robusto em qualquer host) -->
+        <a href="painel-gestor.html" target="_blank" class="text-white/50 text-sm hover:text-white/80 transition-colors">
+            Acessar Painel Gestor
+        </a>
+    </footer>
+
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="script.js"></script>
 </body>
