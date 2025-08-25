@@ -1,19 +1,5 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "public",
   "rewrites": [
     { "source": "/painel", "destination": "/painel-gestor.html" }
-  ]
-}
-
-
-
-
-{
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/painel", "destination": "/public/painel-gestor.html" }
   ]
 }
