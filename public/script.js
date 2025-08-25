@@ -1,8 +1,7 @@
 /*
-  HemoFlow Coletor v6.2
-  - Lógica do scanner refeita para máxima compatibilidade móvel.
-  - Adicionado feedback de estado visual para o utilizador (pedir permissão, erro, etc.).
-  - Melhorada a seleção de câmara traseira.
+  HemoFlow Coletor v6.3
+  - Adicionado botão de ativação explícito para a câmara para máxima compatibilidade móvel.
+  - O pedido de permissão agora é acionado por uma ação direta do utilizador.
 */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -17,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let codeReader = null;
   let isScanning = false;
+  let mediaStream = null; // Para guardar a referência do stream da câmara
 
   const STEP_DEFINITIONS = [
     { id: 'welcome', index: 0 },
@@ -36,10 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const mainContainer = document.querySelector('main.app-container');
 
   function init() {
-    if (!mainContainer) {
-        console.error("Erro Crítico: O container principal ('main.app-container') não foi encontrado.");
-        return;
-    }
+    if (!mainContainer) return;
     generateTimelineStepsHTML();
     setupEventListeners();
     showStep('welcome');
@@ -75,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     safeAddEventListener('save-btn', 'click', saveToGoogleSheets);
     safeAddEventListener('new-patient-btn', 'click', resetSystem);
     safeAddEventListener('destino-select', 'change', validateFinalForm);
+    safeAddEventListener('activate-camera-btn', 'click', activateCamera); // Listener para o novo botão
 
     const roomSelection = document.querySelector('#step-room-selection');
     if(roomSelection) {
@@ -97,9 +95,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- CONTROLO DO SCANNER (LÓGICA ATUALIZADA) ---
 
-  async function startScanner() {
-    if (isScanning) return;
+  function showStatus(message, showButton = false) {
+    const statusElement = document.getElementById('camera-status');
+    const statusMessage = document.getElementById('camera-status-message');
+    const activateBtn = document.getElementById('activate-camera-btn');
+    
+    if (statusElement && statusMessage && activateBtn) {
+        statusMessage.textContent = message;
+        activateBtn.style.display = showButton ? 'block' : 'none';
+        statusElement.style.display = 'flex';
+    }
+  }
 
+  function hideStatus() {
+    const statusElement = document.getElementById('camera-status');
+    const cameraContainer = document.getElementById('camera-container');
+    if (statusElement) statusElement.style.display = 'none';
+    if (cameraContainer) cameraContainer.classList.add('scanning');
+  }
+
+  async function activateCamera() {
+      if (isScanning) return;
+
+      showStatus('A pedir permissão para a câmara...', false);
+
+      try {
+          // Pede acesso à câmara traseira diretamente
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: 'environment' }
+          });
+
+          const videoElement = document.getElementById('video-preview');
+          videoElement.srcObject = mediaStream;
+          
+          // Ouve o evento 'loadedmetadata' para garantir que o vídeo tem dimensões
+          videoElement.addEventListener('loadedmetadata', () => {
+              startScanner(videoElement);
+          }, { once: true });
+
+      } catch (err) {
+          console.error("Erro ao obter permissão da câmara:", err);
+          let errorMessage = "Erro ao aceder à câmara.";
+          if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+              errorMessage = "Permissão para a câmara negada. Por favor, autorize o acesso nas configurações do seu navegador.";
+          } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+              errorMessage = "Nenhuma câmara traseira foi encontrada no seu dispositivo.";
+          } else {
+              errorMessage = `Erro: ${err.name}. Verifique as permissões e se está a usar HTTPS.`;
+          }
+          showStatus(errorMessage, true); // Mostra o erro e o botão para tentar novamente
+      }
+  }
+
+  function startScanner(videoElement) {
     const hints = new Map();
     const formats = [ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.DATA_MATRIX];
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
@@ -107,78 +155,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     codeReader = new ZXing.BrowserMultiFormatReader(hints);
     isScanning = true;
+    hideStatus();
+    console.log("Câmara ativa. A procurar por códigos...");
 
-    const videoElement = document.getElementById('video-preview');
-    const statusElement = document.getElementById('camera-status');
-    const statusMessage = statusElement.querySelector('p');
-
-    const showStatus = (message) => {
-        statusMessage.textContent = message;
-        statusElement.style.display = 'flex';
-        videoElement.style.opacity = 0;
-    };
-
-    const hideStatus = () => {
-        statusElement.style.display = 'none';
-        videoElement.style.opacity = 1;
-    };
-
-    showStatus('A pedir permissão para a câmara...');
-
-    try {
-        const videoInputDevices = await codeReader.listVideoInputDevices();
-        if (videoInputDevices.length === 0) {
-            throw new Error("Nenhuma câmara foi encontrada.");
+    codeReader.decodeFromVideoElement(videoElement, (result, err) => {
+        if (result) {
+            onScanSuccess(result.getText());
         }
-
-        let selectedDeviceId = null;
-        const rearCamera = videoInputDevices.find(device => /back|traseira|rear/i.test(device.label));
-        selectedDeviceId = rearCamera ? rearCamera.deviceId : videoInputDevices[videoInputDevices.length - 1].deviceId;
-        
-        console.log(`A iniciar scanner com o dispositivo: ${selectedDeviceId}`);
-        showStatus('A iniciar câmara...');
-
-        // Ouve o evento 'playing' para saber quando o vídeo realmente começou
-        videoElement.addEventListener('playing', hideStatus, { once: true });
-
-        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video-preview', (result, err) => {
-            if (result) {
-                onScanSuccess(result.getText());
-            }
-            if (err && !(err instanceof ZXing.NotFoundException)) {
-                console.error("Erro no scanner:", err);
-            }
-        });
-
-    } catch (err) {
-        console.error("Erro ao iniciar o scanner:", err);
-        let errorMessage = "Erro ao aceder à câmara.";
-        if (err.name === "NotAllowedError") {
-            errorMessage = "Permissão para a câmara negada. Por favor, autorize o acesso nas configurações do seu navegador.";
-        } else {
-            errorMessage = `Erro: ${err.name}. Verifique as permissões e se está a usar HTTPS.`;
+        if (err && !(err instanceof ZXing.NotFoundException)) {
+            console.error("Erro no scanner:", err);
         }
-        showStatus(errorMessage);
-        isScanning = false;
-    }
+    });
   }
 
   function stopScanner() {
     if (codeReader) {
         codeReader.reset();
         codeReader = null;
-        isScanning = false;
-        console.log("Scanner parado.");
-        const videoElement = document.getElementById('video-preview');
-        const statusElement = document.getElementById('camera-status');
-        if (videoElement) videoElement.style.opacity = 0;
-        if (statusElement) statusElement.style.display = 'none';
     }
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop()); // Desliga a câmara
+        mediaStream = null;
+    }
+    isScanning = false;
+    console.log("Scanner parado.");
+    
+    // Repõe o estado inicial do ecrã do scanner
+    const cameraContainer = document.getElementById('camera-container');
+    if (cameraContainer) cameraContainer.classList.remove('scanning');
+    showStatus('Toque no botão para ativar a câmara.', true);
   }
 
   function onScanSuccess(decodedText) {
     if (isScanning) {
-        stopScanner();
+        // Não paramos o stream aqui, apenas o leitor. O stream será parado ao sair do passo.
+        if (codeReader) codeReader.reset();
+        isScanning = false;
         if (navigator.vibrate) navigator.vibrate(150);
         processPatientId(decodedText);
     }
@@ -194,10 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
       appState.currentStepId = stepId;
     }
 
-    if (stepId === 'scanner') {
-        startScanner();
-    } else {
+    // A câmara só é ativada pelo botão, mas paramos ao sair do passo
+    if (stepId !== 'scanner') {
         stopScanner();
+    } else {
+        // Garante que o scanner está no estado inicial ao entrar no passo
+        stopScanner(); 
     }
   }
 
