@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HemoFlow - Coletor</title>
+    <meta name="theme-color" content="#005a9c">
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <link href="output.css" rel="stylesheet">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+</head>
+<body class="relative">
+
+    <main class="app-container">
+        
+        <!-- ETAPA 0: BEM-VINDO -->
+        <section id="step-welcome" class="step-container">
+            <div class="step-card">
+                <div class="step-header text-center">
+                    
+                    <h1 class="step-title">HemoFlow Coletor</h1>
+                    <p class="step-subtitle">Registo de Tempos de Procedimento</p>
+                </div>
+                <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Novo Registo</button>
+            </div>
+        </section>
+        
+        <!-- ETAPA 1: SCANNER / ID MANUAL -->
+        <section id="step-scanner" class="step-container" style="display: none;">
+            <div class="step-card">
+                <div class="step-header">
+                    <h2 class="step-title">Identificação</h2>
+                    <p class="step-subtitle">Aponte a câmara para o código.</p>
+                </div>
+                <!-- ALTERAÇÃO: Trocamos a <div> por uma <video> para melhor performance -->
+                <video id="video-preview" class="camera-preview"></video>
+                <p class="text-center my-4 text-white/70">ou</p>
+                <div class="input-group">
+                    <input type="text" id="patient-id-input" placeholder="DIGITE O ID DO PACIENTE" class="input-field">
+                    <button id="manual-submit-btn" class="btn-revolutionary btn-success mt-4">Confirmar ID</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Outras seções do seu HTML (sem alterações) -->
+        <section id="step-room-selection" class="step-container" style="display: none;">
+            <div class="step-card text-center">
+                 <h2 class="step-title">Paciente: <span id="patient-id-display" class="text-white">--</span></h2>
+                 <p class="step-subtitle mt-2 mb-8">Selecione a sala do procedimento.</p>
+                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                       <button class="btn-revolutionary btn-room" data-sala="Sala 1">Sala 1</button>
+                       <button class="btn-revolutionary btn-room" data-sala="Sala 2">Sala 2</button>
+                       <button class="btn-revolutionary btn-room" data-sala="Sala 3">Sala 3</button>
+                       <button class="btn-revolutionary btn-room" data-sala="Sala 4">Sala 4</button>
+                       <button class="btn-revolutionary btn-room" data-sala="Sala 5">Sala 5</button>
+                 </div>
+            </div>
+        </section>
+
+        <section id="step-final" class="step-container" style="display: none;">
+            <div class="step-card">
+                <h2 class="step-title text-center">Finalização</h2>
+                <div class="space-y-6 mt-6">
+                    <div>
+                        <label class="block text-white/80 mb-2">Destino do Paciente</label>
+                        <select id="destino-select" class="form-select">
+                            <option value="">Selecione...</option>
+                            <option value="Recuperação">Recuperação</option>
+                            <option value="UTI">UTI</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-white/80 mb-2">Observações (opcional)</label>
+                        <textarea id="observations" class="input-field !text-base text-left" placeholder="..." rows="3"></textarea>
+                    </div>
+                    <button id="save-btn" class="btn-revolutionary btn-success" disabled>Concluir e Salvar</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="step-success" class="step-container" style="display: none;">
+            <div class="step-card text-center">
+                 <div class="text-8xl mb-4">✅</div>
+                 <h2 class="step-title">Registo Salvo!</h2>
+                 <p class="step-subtitle">Os dados foram enviados para o Painel Gestor.</p>
+                 <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Registar Novo Paciente</button>
+            </div>
+        </section>
+
+    </main>
+    
+    <div id="loading-overlay" class="loading-overlay" style="display:none;"><div class="loading-spinner"></div></div>
+
+    <footer class="absolute bottom-4 text-center w-full">
+        <a href="./painel-gestor.html" target="_blank" class="text-white/50 text-sm hover:text-white/80 transition-colors">
+            Aceder ao Painel Gestor
+        </a>
+    </footer>
+
+    <!-- ALTERAÇÃO: Trocamos a biblioteca do scanner -->
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/zxing.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
