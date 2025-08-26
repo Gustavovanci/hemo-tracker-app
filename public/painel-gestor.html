@@ -8,6 +8,8 @@
   <!-- Tailwind e libs -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Datalabels para percentuais no VA×NVA (opcional; se não carregar, o gráfico funciona sem os rótulos) -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/2.29.3/index.min.js"></script>
 
   <!-- Fonts -->
@@ -40,7 +42,7 @@
     .card{ background:linear-gradient(145deg, rgba(17,26,43,.95), rgba(31,41,55,.85)); border-radius:20px; padding:28px; border:1px solid rgba(255,255,255,.10); transition:all .35s; position:relative; overflow:hidden; }
     .card:hover{ transform:translateY(-6px) scale(1.02); box-shadow:0 20px 48px rgba(0,0,0,.40); border-color:rgba(255,255,255,.18); }
 
-    .kpi-card{ background:linear-gradient(145deg, rgba(17,26,43,.98), rgba(31,41,55,.9)); border-radius:24px; padding:24px; border:1px solid rgba(255,255,255,.12); transition:all .25s; cursor:pointer; display: flex; flex-direction: column; justify-content: space-between; }
+    .kpi-card{ background:linear-gradient(145deg, rgba(17,26,43,.98), rgba(31,41,55,.9)); border-radius:24px; padding:24px; border:1px solid rgba(255,255,255,.12); transition:.25s; cursor:pointer; display: flex; flex-direction: column; justify-content: space-between; }
     .kpi-card:hover{ transform:translateY(-8px) scale(1.02); box-shadow:0 24px 56px rgba(0,0,0,.45); }
     .kpi-value{ color:#fff; font-size:3rem; line-height:1; font-weight:900; text-shadow:0 0 20px rgba(255,255,255,.08); background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
     #kpi-gargalo { font-size: 1.5rem; line-height: 1.2; }
@@ -94,7 +96,7 @@
     <div class="flex-grow overflow-y-auto">
       <div class="flex items-center justify-between mb-12 sidebar-header">
         <div class="overflow-hidden flex items-center gap-4">
-            <img src="https://img.icons8.com/color/48/heart-with-pulse.png" alt="Logo" class="h-10 w-10"/>
+            
             <div>
               <h2 class="text-3xl font-black text-white whitespace-nowrap">HemoFlow</h2>
               <p class="text-white/80 text-lg font-medium whitespace-nowrap">Analytics</p>
@@ -128,7 +130,7 @@
           <span class="font-semibold whitespace-nowrap">Análise de Salas</span>
         </a>
         <a class="nav-item flex items-center p-4" data-section="analises-graficas">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 002 2v2a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2-2V3a2 2 0 012-2h2a2 2 0 012 2v2z" /></svg>
           <span class="font-semibold whitespace-nowrap">Análises Gráficas</span>
         </a>
       </nav>
@@ -207,7 +209,7 @@
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Alertas de Desvio</h2><span class="text-xs text-white/60">Limites por segmento.</span></div><div id="alerts-summary" class="text-sm text-white/90 mb-4"></div><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="text-gray-400"><th class="py-3">Data</th><th class="py-3">Sala</th><th class="py-3">Segmento</th><th class="py-3">Tempo</th></tr></thead><tbody id="alerts-top" class="text-white/90"></tbody></table></div></div>
-          <div class="card"><h2 class="text-xl font-extrabold mb-4">Casos Lentos • Top 5</h2><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="text-gray-400 text-sm"><th class="py-3">Data</th><th class="py-3">Sala</th><th class="py-3">Fonte</th><th class="py-3">Giro (min)</th><th class="py-3">Segmento Limitante</th></tr></thead><tbody id="slow-cases-body" class="text-white/90 text-sm"></tbody></table></div></div>
+          <div class="card"><h2 class="text-xl font-extrabold mb-5">Casos Lentos • Top 5</h2><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="text-gray-400 text-sm"><th class="py-3">Data</th><th class="py-3">Sala</th><th class="py-3">Fonte</th><th class="py-3">Giro (min)</th><th class="py-3">Segmento Limitante</th></tr></thead><tbody id="slow-cases-body" class="text-white/90 text-sm"></tbody></table></div></div>
         </div>
       </div>
 
@@ -222,11 +224,42 @@
           <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Distribuição do Tempo de Giro</h2><span class="badge bg-blue-500/20 text-blue-300">Bins de 5 min</span></div><div class="chart-container" style="height:320px;"><canvas id="histogram-chart"></canvas></div></div>
           <div id="source-section" class="card hidden"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Comparativo por Fonte</h2><span class="badge bg-blue-500/20 text-blue-300">Unidade: min</span></div><div class="chart-container" style="height:320px;"><canvas id="source-compare-chart"></canvas></div></div>
         </div>
+
+        <!-- NOVO: Box Plot de Variabilidade por Etapa -->
+        <div class="grid grid-cols-1 gap-8">
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-extrabold">Variabilidade por Etapa (Box Plot)</h2>
+              <span class="badge bg-blue-500/20 text-blue-300">Mediana, IQR, Min/Máx, Outliers</span>
+            </div>
+            <div class="chart-container" style="height:420px;">
+              <canvas id="boxplot-segments-chart"></canvas>
+            </div>
+            <p class="text-xs text-white/60 mt-3">
+              Lean — <b>Mura</b> (variabilidade): identifique etapas imprevisíveis. A caixa mostra Q1–Q3, a linha é a mediana, bigodes = min/máx (sem outliers) e pontos são outliers.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div id="section-analise-salas" class="section-content hidden space-y-8">
         <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Quadrante de Eficiência (Volume vs. Tempo)</h2><span class="badge bg-blue-500/20 text-blue-300">Meta: <b id="quad-sla-target">60</b> min</span></div><div class="chart-container" style="height:420px;"><canvas id="efficiency-quadrant-chart"></canvas></div><p class="text-xs text-white/60 mt-3">Uma cor por sala, com legenda.</p></div>
         <div class="card"><h2 class="text-xl font-extrabold mb-5">Fluxo do Processo — Medianas por Segmento</h2><div class="chart-container" style="height:420px;"><canvas id="process-flow-comparison-chart"></canvas></div><p class="text-xs text-white/60 mt-3">Unidade: minutos.</p></div>
+
+        <!-- NOVO: VA x NVA por Sala -->
+        <div class="card">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-extrabold">Valor Agregado vs. Desperdício (VA × NVA)</h2>
+            <span class="badge bg-blue-500/20 text-blue-300">VA = Procedimento • NVA = Esperas + Movimentação</span>
+          </div>
+          <div class="chart-container" style="height:360px;">
+            <canvas id="va-nva-chart"></canvas>
+          </div>
+          <p class="text-xs text-white/60 mt-3">
+            Lean — <b>Muda</b> (desperdício): mostra a proporção do tempo total (mediano) por sala dedicada ao que agrega valor (Procedimento) versus o que não agrega (esperas e transições).
+          </p>
+        </div>
+
         <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Checklist SMED — Tempo Externo × Em Sala</h2><span class="badge bg-blue-500/20 text-blue-300">Unidade: min</span></div><div class="chart-container" style="height:340px;"><canvas id="smed-stacked-chart"></canvas></div></div>
         <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Agendamento Inteligente — Melhores Horários</h2><span class="text-xs text-white/60">Seg–Sex, 07–19.</span></div><div class="grid lg:grid-cols-3 gap-6"><div class="lg:col-span-1"><h3 class="font-bold mb-3 text-white/90 text-lg">Top Horários Recomendados</h3><ul id="top-hours-list" class="space-y-3"></ul></div><div class="lg:col-span-2"><div class="chart-container" style="height:320px;"><canvas id="hour-compliance-chart"></canvas></div></div></div></div>
         <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Heatmap de Gargalos por Sala</h2><span class="text-xs text-white/60">Valores em minutos. Cores vs mediana global.</span></div><div id="bottleneck-heatmap" class="overflow-x-auto"></div></div>
@@ -234,7 +267,7 @@
     </div>
   </main>
 
-  <!-- SEU SCRIPT DE LÓGICA ORIGINAL (INCLUÍDO) -->
+  <!-- SEU SCRIPT DE LÓGICA ORIGINAL + INTEGRAÇÕES LEAN -->
   <script>
     // ====================== CONFIG ======================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1DqdGi-gR4Fqd0JxxP4q0MxeBIN5Cv2FZEUOjQd-qplH5X-O9A94rsoFLFDUGaBgn/exec';
@@ -257,6 +290,9 @@
     const ALERT_LIMITS_SEG = { cheg_entr: 30, entr_iniCob: 10, cobertura: 15, pos_cob: 5, proc: 60, pos_proc: 10, saida_iniLimp: 5, limpeza: 15 };
     const BIN_SIZE_MIN = 5;
     const palette = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#e11d48'];
+
+    // Registra plugin de datalabels se disponível (usado no VA×NVA)
+    try { if (window.ChartDataLabels) { Chart.register(window.ChartDataLabels); } } catch(_) {}
 
     // ====================== STATE ======================
     let currentUser = null;
@@ -528,6 +564,11 @@
       renderBottleneckHeatmap(analysis);
       renderSMED(analysis);
       renderSmartScheduling(allProcedures, filters.sla);
+
+      // ======= NOVOS GRÁFICOS LEAN =======
+      renderBoxplotSegments(analysis);  // Variabilidade por etapa (Mura)
+      renderVAvsNVA(analysis);          // Valor agregado vs desperdício (Muda)
+
       showState('content');
     }
 
@@ -864,6 +905,245 @@
       dom.loadingState.style.display = state==='loading' ? 'block':'none';
       dom.errorState.style.display = state==='error' ? 'block':'none';
       dom.dashboardContent.style.display = state==='content' ? 'block':'none';
+    }
+
+    // ====================== NOVOS: FUNÇÕES LEAN ======================
+
+    // Calcula estatísticas de box plot para cada segmento (usando dados já filtrados)
+    function computeSegmentBoxStats(analysis){
+      const procs = Object.values(analysis).flatMap(s=>s.procedures);
+      const statsBySeg = SEGMENTS.map(seg=>{
+        const arr = procs.map(p=>p.segments[seg.key]).filter(v=> typeof v==='number' && v>0).sort((a,b)=>a-b);
+        if(!arr.length) return { label: seg.label, key: seg.key, n:0, q1:null, median:null, q3:null, whiskerMin:null, whiskerMax:null, outliers:[] };
+        const q1 = percentile(arr,25);
+        const med = percentile(arr,50);
+        const q3 = percentile(arr,75);
+        const iqr = (q3 - q1);
+        const lowerFence = q1 - 1.5*iqr;
+        const upperFence = q3 + 1.5*iqr;
+        const inliers = arr.filter(v => v>=lowerFence && v<=upperFence);
+        const whiskerMin = inliers.length ? Math.min(...inliers) : Math.min(...arr);
+        const whiskerMax = inliers.length ? Math.max(...inliers) : Math.max(...arr);
+        const outliers = arr.filter(v => v<lowerFence || v>upperFence);
+        return { label: seg.label, key: seg.key, n:arr.length, q1, median: med, q3, whiskerMin, whiskerMax, outliers };
+      });
+      return statsBySeg;
+    }
+
+    // Desenha whiskers e outliers por cima do gráfico (usando os dados de stats)
+    function makeWhiskerPlugin(stats){
+      const id = 'whisker-' + Math.random().toString(36).slice(2);
+      return {
+        id,
+        afterDatasetsDraw(chart){
+          const {ctx, scales:{x, y}, config} = chart;
+          const dsIndex = chart.config.data.datasets.findIndex(ds => ds.label === 'IQR (Q1–Q3)');
+          if(dsIndex<0) return;
+          const meta = chart.getDatasetMeta(dsIndex);
+          ctx.save();
+          ctx.strokeStyle = 'rgba(229,231,235,0.9)';
+          ctx.lineWidth = 2;
+          const cap = 16;
+
+          stats.forEach((s, i)=>{
+            if(s.n<=0 || s.q1==null || s.q3==null) return;
+            const element = meta.data[i];
+            if(!element) return;
+            const cx = element.x;
+            // whiskers
+            const yMin = y.getPixelForValue(s.whiskerMin);
+            const yMax = y.getPixelForValue(s.whiskerMax);
+            ctx.beginPath();
+            ctx.moveTo(cx, yMin); ctx.lineTo(cx, yMax); // linha central
+            // "caps"
+            ctx.moveTo(cx - cap/2, yMin); ctx.lineTo(cx + cap/2, yMin);
+            ctx.moveTo(cx - cap/2, yMax); ctx.lineTo(cx + cap/2, yMax);
+            ctx.stroke();
+
+            // outliers (limita para não poluir)
+            if(s.outliers?.length){
+              ctx.fillStyle = 'rgba(239,68,68,0.9)';
+              s.outliers.slice(0,60).forEach((v, k)=>{
+                const jitter = ((k%7)-3)*1.4; // leve jitter horizontal
+                const oy = y.getPixelForValue(v);
+                ctx.beginPath();
+                ctx.arc(cx + jitter, oy, 3, 0, Math.PI*2);
+                ctx.fill();
+              });
+            }
+          });
+          ctx.restore();
+        }
+      };
+    }
+
+    // Renderiza o Box Plot por etapa
+    function renderBoxplotSegments(analysis){
+      const canvas = document.getElementById('boxplot-segments-chart'); if(!canvas) return;
+      const ctx = canvas.getContext('2d'); charts.boxplot?.destroy();
+
+      const stats = computeSegmentBoxStats(analysis);
+      const labels = stats.map(s => s.label);
+      const iqrData = stats.map(s => (s.q1!=null && s.q3!=null) ? [s.q1, s.q3] : [null, null]);
+      const medData = stats.map(s => s.median!=null ? s.median : null);
+
+      charts.boxplot = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'IQR (Q1–Q3)',
+              data: iqrData, // barras flutuantes
+              backgroundColor: 'rgba(99,102,241,0.22)',
+              borderColor: 'rgba(99,102,241,0.85)',
+              borderWidth: 2,
+              borderSkipped: false,
+              barThickness: 28
+            },
+            {
+              type: 'line',
+              label: 'Mediana',
+              data: medData,
+              borderColor: '#22c55e',
+              backgroundColor: '#22c55e',
+              borderWidth: 3,
+              pointRadius: 0,
+              tension: 0,
+              spanGaps: true
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color:'#fff', font: { size: 14, weight: 'bold' } } },
+            tooltip: {
+              backgroundColor: 'rgba(17,26,43,0.95)',
+              borderColor: 'rgba(255,255,255,0.2)', borderWidth: 1,
+              callbacks: {
+                label: (c) => {
+                  const i = c.dataIndex;
+                  const s = stats[i];
+                  if (!s || s.n<=0) return 'Sem dados';
+                  return `Mediana: ${roundMin(s.median)} min • Q1: ${roundMin(s.q1)} • Q3: ${roundMin(s.q3)} • WMin: ${roundMin(s.whiskerMin)} • WMax: ${roundMin(s.whiskerMax)} • n=${s.n}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color:'#fff', callback: v => `${roundMin(v)} min`, font: { size: 12 } },
+              grid: { color:'rgba(255,255,255,0.08)' }
+            },
+            x: {
+              ticks: { color:'#fff', font: { size: 11 } },
+              grid: { color:'rgba(255,255,255,0.05)' }
+            }
+          }
+        },
+        plugins: [ makeWhiskerPlugin(stats) ]
+      });
+    }
+
+    // Renderiza VA x NVA por sala (VA = Procedimento; NVA = demais segmentos)
+    function renderVAvsNVA(analysis){
+      const canvas = document.getElementById('va-nva-chart'); if(!canvas) return;
+      const ctx = canvas.getContext('2d'); charts.vaNva?.destroy();
+
+      const salas = Object.keys(analysis);
+      if(!salas.length) return;
+
+      const vaArr = [];
+      const nvaArr = [];
+      const labels = [];
+
+      salas.forEach(s=>{
+        const procs = analysis[s].procedures;
+        if(!procs?.length) return;
+
+        const vaList = [];
+        const nvaList = [];
+
+        procs.forEach(p=>{
+          const va = (typeof p.segments['proc'] === 'number' && p.segments['proc']>0) ? p.segments['proc'] : null;
+          if(va==null) return; // sem VA não faz sentido incluir
+          // Soma de todos os segmentos válidos (evita dependência do totalTime)
+          let sumAll = 0;
+          SEGMENTS.forEach(seg=>{
+            const v = p.segments[seg.key];
+            if(typeof v==='number' && v>0) sumAll += v;
+          });
+          const nva = Math.max(0, sumAll - va);
+          vaList.push(va);
+          nvaList.push(nva);
+        });
+
+        if(vaList.length){
+          labels.push(s);
+          vaArr.push(roundMin(median(vaList)));
+          nvaArr.push(roundMin(median(nvaList)));
+        }
+      });
+
+      if(!labels.length) return;
+
+      charts.vaNva = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'NVA (Esperas + Transições)', data: nvaArr, backgroundColor: 'rgba(239,68,68,0.85)', stack: 'va-nva', borderRadius: 8, borderSkipped: false },
+            { label: 'VA (Procedimento)',          data: vaArr,  backgroundColor: 'rgba(16,185,129,0.90)', stack: 'va-nva', borderRadius: 8, borderSkipped: false }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels:{ color:'#fff', font: { size: 14, weight: 'bold' } } },
+            tooltip: {
+              backgroundColor: 'rgba(17,26,43,0.95)',
+              borderColor: 'rgba(255,255,255,0.2)', borderWidth: 1,
+              callbacks: {
+                footer: (items) => {
+                  const i = items[0].dataIndex;
+                  const total = (vaArr[i] || 0) + (nvaArr[i] || 0);
+                  if(total<=0) return '';
+                  const pctVA = Math.round(100*(vaArr[i]/total));
+                  const pctNVA = 100 - pctVA;
+                  return `VA: ${pctVA}% • NVA: ${pctNVA}%`;
+                }
+              }
+            },
+            datalabels: window.ChartDataLabels ? {
+              color: '#fff',
+              formatter: (value, ctx) => {
+                const i = ctx.dataIndex;
+                const total = (vaArr[i] || 0) + (nvaArr[i] || 0);
+                if(!total) return '';
+                const pct = Math.round(100 * value / total);
+                return `${pct}%`;
+              },
+              font: { weight: 'bold' }
+            } : undefined
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              stacked: true,
+              title: { display: true, text: 'Tempo (min)', color:'#fff', font: { size: 14, weight: 'bold' } },
+              ticks: { color:'#fff', callback: v => `${roundMin(v)} min`, font: { size: 12 } },
+              grid: { color:'rgba(255,255,255,0.08)' }
+            },
+            x: {
+              stacked: true,
+              ticks: { color:'#fff', font: { size: 12 } },
+              grid: { color:'rgba(255,255,255,0.05)' }
+            }
+          }
+        }
+      });
     }
 
     // ---- bootstrap
