@@ -38,7 +38,7 @@
             border: 3px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); /* Cria uma vinheta para focar a visão */
             border-radius: 0.5rem;
-            display: none; /* Escondido por defeito, ativado via JS */
+            display: none; /* Escondido por padrão, ativado via JS */
         }
         .camera-container.scanning::after {
             display: block;
@@ -54,9 +54,9 @@
                 <div class="step-header text-center">
                     
                     <h1 class="step-title">HemoFlow Coletor</h1>
-                    <p class="step-subtitle">Registo de Tempos de Procedimento</p>
+                    <p class="step-subtitle">Registro de Tempos de Procedimento</p>
                 </div>
-                <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Novo Registo</button>
+                <button id="start-btn" class="btn-revolutionary btn-primary">Iniciar Novo Registro</button>
             </div>
         </section>
         
@@ -70,8 +70,8 @@
                     <video id="video-preview" class="camera-preview" autoplay playsinline muted></video>
                     <canvas id="canvas-preview" style="display: none;"></canvas>
                     <div id="camera-status" class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 bg-black/70">
-                        <p id="camera-status-message">Toque no botão para ativar a câmara.</p>
-                        <button id="activate-camera-btn" class="btn-revolutionary btn-primary mt-4">Ativar Câmara</button>
+                        <p id="camera-status-message">Toque no botão para ativar a câmera.</p>
+                        <button id="activate-camera-btn" class="btn-revolutionary btn-primary mt-4">Ativar Câmera</button>
                     </div>
                 </div>
                 <p class="text-center my-4 text-white/70">ou</p>
@@ -122,9 +122,9 @@
         <section id="step-success" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <div class="text-8xl mb-4">✅</div>
-                 <h2 class="step-title">Registo Salvo!</h2>
+                 <h2 class="step-title">Registro Salvo!</h2>
                  <p class="step-subtitle">Os dados foram enviados para o Painel Gestor.</p>
-                 <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Registar Novo Paciente</button>
+                 <button id="new-patient-btn" class="btn-revolutionary btn-primary mt-8">Registrar Novo Paciente</button>
             </div>
         </section>
 
@@ -134,7 +134,7 @@
 
     <footer class="absolute bottom-4 text-center w-full">
         <a href="./painel-gestor.html" target="_blank" class="text-white/50 text-sm hover:text-white/80 transition-colors">
-            Aceder ao Painel Gestor
+            Acessar o Painel Gestor
         </a>
     </footer>
 

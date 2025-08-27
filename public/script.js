@@ -1,7 +1,8 @@
 /*
-  HemoFlow Coletor v6.5
-  - Implementado leitor de código de barras de alta robustez com pré-processamento de imagem em canvas.
-  - Mantém a persistência de estado e o fluxo dinâmico para a Sala 3.
+  HemoFlow Coletor v6.6
+  - Corrigido bug na UI do scanner onde a mensagem de permissão não desaparecia.
+  - Textos e mensagens de erro totalmente em Português do Brasil.
+  - Mantém scanner de alta performance, persistência de estado e fluxo dinâmico.
 */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -15,13 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let codeReader = null;
   let isScanning = false;
   let mediaStream = null;
-  let animationFrameId = null; // Para controlar o loop do scanner
+  let animationFrameId = null;
 
-  // Elementos do DOM para o scanner
   const videoElement = document.getElementById('video-preview');
   const canvasElement = document.getElementById('canvas-preview');
   const canvasContext = canvasElement.getContext('2d', { willReadFrequently: true });
-
 
   const STANDARD_TIMELINE_STEPS = [
     'Chegada na Hemodinâmica', 'Entrada na Sala', 'Início da Cobertura',
@@ -43,17 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
   }
 
-  // --- LÓGICA DO SCANNER DE ALTA PERFORMANCE ---
+  // --- LÓGICA DO SCANNER DE ALTA PERFORMANCE (CORRIGIDA) ---
 
   function processFrameAndDecode() {
-      if (!isScanning) return;
+      if (!isScanning || !codeReader) return;
       
-      // Ajusta o tamanho do canvas para o do vídeo
       if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
           canvasElement.width = videoElement.videoWidth;
           canvasElement.height = videoElement.videoHeight;
-
-          // Aplica filtros para melhorar a imagem
           canvasContext.filter = 'grayscale(1) contrast(175%) brightness(110%)';
           canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
           
@@ -61,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const result = codeReader.decodeFromCanvas(canvasElement);
               if (result) {
                   onScanSuccess(result.getText());
-                  return; // Para o loop
+                  return; 
               }
           } catch (err) {
               if (!(err instanceof ZXing.NotFoundException)) {
@@ -69,22 +65,33 @@ document.addEventListener('DOMContentLoaded', () => {
               }
           }
       }
-      // Continua o loop para o próximo quadro
       animationFrameId = requestAnimationFrame(processFrameAndDecode);
   }
 
   async function activateCamera() {
       if (isScanning) return;
-      showStatus('A pedir permissão para a câmara...', false);
+      showStatus('Solicitando permissão para a câmera...', false);
       try {
           mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
           videoElement.srcObject = mediaStream;
-          videoElement.addEventListener('loadedmetadata', () => {
+          
+          // **CORREÇÃO:** O evento 'playing' garante que o vídeo está de fato sendo exibido
+          // antes de mudarmos a UI e iniciarmos o scanner.
+          videoElement.addEventListener('playing', () => {
               startScanner();
           }, { once: true });
+
       } catch (err) {
-          console.error("Erro ao obter permissão da câmara:", err);
-          showStatus("Permissão negada. Verifique as configurações do navegador.", true);
+          console.error("Erro ao obter permissão da câmera:", err);
+          let errorMessage = "Erro ao acessar a câmera.";
+           if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+              errorMessage = "Permissão para a câmera negada. Por favor, autorize o acesso nas configurações do seu navegador e atualize a página.";
+          } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+              errorMessage = "Nenhuma câmera traseira foi encontrada no seu dispositivo.";
+          } else {
+              errorMessage = `Erro: ${err.name}. Verifique as permissões e se a página está em um endereço seguro (HTTPS).`;
+          }
+          showStatus(errorMessage, true);
       }
   }
 
@@ -96,9 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     codeReader = new ZXing.BrowserMultiFormatReader(hints);
     isScanning = true;
-    hideStatus();
+    hideStatus(); // Esconde a mensagem e mostra a interface de scan
     console.log("Scanner de alta performance ativo...");
-    // Inicia o loop de processamento
     animationFrameId = requestAnimationFrame(processFrameAndDecode);
   }
 
@@ -115,20 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
     codeReader = null;
     const cameraContainer = document.getElementById('camera-container');
     if (cameraContainer) cameraContainer.classList.remove('scanning');
-    showStatus('Toque no botão para ativar a câmara.', true);
+    showStatus('Toque no botão para ativar a câmera.', true);
   }
 
   function onScanSuccess(decodedText) {
       if (isScanning) {
           console.log("Código lido com sucesso:", decodedText);
-          isScanning = false; // Impede múltiplas leituras
+          isScanning = false;
           if (navigator.vibrate) navigator.vibrate([150, 50, 150]);
           processPatientId(decodedText);
-          // O scanner já terá parado por 'isScanning' ser false
       }
   }
   
-  // O restante do código (lógica do app, UI, etc.) permanece o mesmo...
+  // --- LÓGICA DA APLICAÇÃO (UI, ESTADO, ETC.) ---
   
   function generateTimelineStepsHTML(stepNames) {
     mainContainer.querySelectorAll('section[id^="step-timeline-"]').forEach(el => el.remove());
@@ -139,10 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="step-header">
             <div class="step-number">${index + 1}</div>
             <h2 class="step-title">${name}</h2>
-            <p class="step-subtitle">Toque para registar o horário exato.</p>
+            <p class="step-subtitle">Toque para registrar o horário exato.</p>
           </div>
           <div id="time-display-${index + 1}" class="time-display">Aguardando...</div>
-          <button data-step-name="${name}" data-step-index="${index + 1}" class="btn-revolutionary btn-primary mark-step-btn">Registar Tempo</button>
+          <button data-step-name="${name}" data-step-index="${index + 1}" class="btn-revolutionary btn-primary mark-step-btn">Registrar Tempo</button>
         </div>
       </section>`;
       mainContainer.insertAdjacentHTML('beforeend', stepHtml);
@@ -254,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     button.classList.replace('btn-primary', 'btn-success');
     button.innerHTML = `✅ Marcado`;
     const timeDisplay = document.getElementById(`time-display-${stepIndex}`);
-    if(timeDisplay) timeDisplay.innerHTML = `Registado: <span class="font-bold">${now.toLocaleTimeString('pt-BR')}</span>`;
+    if(timeDisplay) timeDisplay.innerHTML = `Registrado: <span class="font-bold">${now.toLocaleTimeString('pt-BR')}</span>`;
     saveState();
     setTimeout(() => nextStep(), 500);
   }
@@ -276,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(SESSION_STORAGE_KEY);
     } catch (error) {
       console.error('Falha ao enviar os dados:', error);
-      alert('Falha ao enviar os dados. Verifique a sua conexão e tente novamente.');
+      alert('Falha ao enviar os dados. Verifique sua conexão e tente novamente.');
     } finally {
       document.getElementById('loading-overlay').style.display = 'none';
     }
@@ -310,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       button.innerHTML = `✅ Marcado`;
                   }
                   if (timeDisplay) {
-                      timeDisplay.innerHTML = `Registado: <span class="font-bold">${time.toLocaleTimeString('pt-BR')}</span>`;
+                      timeDisplay.innerHTML = `Registrado: <span class="font-bold">${time.toLocaleTimeString('pt-BR')}</span>`;
                   }
               }
           });
