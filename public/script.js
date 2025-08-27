@@ -1,7 +1,7 @@
 /*
-  HemoFlow Coletor v6.7
-  - Revertido para um scanner mais simples e rápido (decodeFromVideoDevice) para máxima compatibilidade e velocidade.
-  - Removida a complexidade do pré-processamento de canvas.
+  HemoFlow Coletor v6.8
+  - Implementado scanner com a biblioteca 'html5-qrcode' para máxima confiabilidade.
+  - O scanner agora inicia automaticamente ao entrar na etapa, de forma simples e direta.
   - Mantém persistência de estado e fluxo dinâmico da Sala 3.
   - Todos os textos em Português do Brasil.
 */
@@ -14,8 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentStepId: null, patientId: null, selectedSala: null, stepTimes: {}, timelineSteps: [],
   };
 
-  let codeReader = null;
-  let isScanning = false;
+  let html5QrCode = null; // Variável para controlar a instância do scanner
 
   const STANDARD_TIMELINE_STEPS = [
     'Chegada na Hemodinâmica', 'Entrada na Sala', 'Início da Cobertura',
@@ -37,67 +36,75 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
   }
 
-  // --- LÓGICA DO SCANNER SIMPLES E RÁPIDO ---
+  // --- LÓGICA DO NOVO SCANNER (html5-qrcode) ---
 
-  async function startScanner() {
-      if (isScanning) return;
+  const onScanSuccess = (decodedText, decodedResult) => {
+    // Para o scanner para evitar múltiplas leituras e liberar a câmera
+    stopScanner();
+    console.log(`Código lido com sucesso: ${decodedText}`);
+    if (navigator.vibrate) navigator.vibrate(200);
+    processPatientId(decodedText);
+  };
 
-      const videoElement = document.getElementById('video-preview');
-      const hints = new Map();
-      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX]);
-      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  const onScanFailure = (error) => {
+    // A biblioteca já mostra um log, então não precisamos fazer nada aqui
+    // a não ser que queiramos um tratamento de erro específico.
+  };
 
-      codeReader = new ZXing.BrowserMultiFormatReader(hints);
-      isScanning = true;
-      hideStatus();
-      console.log("Scanner simples iniciado...");
+  function startScanner() {
+    // Previne múltiplas instâncias
+    if (html5QrCode && html5QrCode.isScanning) {
+      return;
+    }
 
-      try {
-          // A biblioteca agora gerencia o stream de vídeo diretamente
-          await codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
-              if (result) {
-                  onScanSuccess(result.getText());
-              }
-              if (err && !(err instanceof ZXing.NotFoundException)) {
-                  console.error("Erro no scanner:", err);
-              }
-          });
-      } catch (err) {
-          console.error("Erro ao iniciar o scanner:", err);
-          let errorMessage = "Erro ao acessar a câmera.";
-           if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-              errorMessage = "Permissão para a câmera negada. Por favor, autorize o acesso nas configurações do seu navegador e atualize a página.";
-          } else {
-              errorMessage = `Erro: ${err.name}. Verifique as permissões e se a página está em um endereço seguro (HTTPS).`;
-          }
-          showStatus(errorMessage, true);
-          isScanning = false;
-      }
+    html5QrCode = new Html5Qrcode("reader");
+    const config = { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true, // Melhora a experiência do usuário
+        supportedScanTypes: [
+            Html5QrcodeScanType.SCAN_TYPE_CAMERA
+        ]
+    };
+
+    html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+      .catch(err => {
+        console.error("Não foi possível iniciar o scanner", err);
+        alert("Erro ao iniciar a câmera. Verifique as permissões do navegador.");
+      });
   }
 
   function stopScanner() {
-      if (codeReader) {
-          codeReader.reset();
-          codeReader = null;
+      if (html5QrCode && html5QrCode.isScanning) {
+          html5QrCode.stop().then(() => {
+              console.log("Scanner parado com sucesso.");
+          }).catch(err => {
+              console.error("Falha ao parar o scanner.", err);
+          });
       }
-      isScanning = false;
-      const cameraContainer = document.getElementById('camera-container');
-      if (cameraContainer) cameraContainer.classList.remove('scanning');
-      showStatus('Toque no botão para ativar a câmera.', true);
-  }
-  
-  function onScanSuccess(decodedText) {
-    if (isScanning) {
-        console.log("Código lido com sucesso:", decodedText);
-        isScanning = false; // Importante para evitar leituras múltiplas
-        if (navigator.vibrate) navigator.vibrate([150]);
-        // Parar o scanner imediatamente após a leitura
-        stopScanner();
-        processPatientId(decodedText);
-    }
   }
 
-  // O restante do código permanece o mesmo...
+  // --- LÓGICA DA APLICAÇÃO ---
+
+  function showStep(stepId) {
+    document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
+    const currentStepElement = document.getElementById(`step-${stepId}`);
+    
+    if (currentStepElement) {
+      currentStepElement.style.display = 'flex';
+      appState.currentStepId = stepId;
+      saveState();
+    }
+    
+    // Gerencia o scanner baseado no passo
+    if (stepId === 'scanner') {
+        startScanner();
+    } else {
+        stopScanner();
+    }
+  }
+  
+  // O resto do código permanece o mesmo...
 
   function generateTimelineStepsHTML(stepNames) {
     mainContainer.querySelectorAll('section[id^="step-timeline-"]').forEach(el => el.remove());
@@ -130,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
     safeAddEventListener('save-btn', 'click', saveToGoogleSheets);
     safeAddEventListener('new-patient-btn', 'click', resetSystem);
     safeAddEventListener('destino-select', 'change', validateFinalForm);
-    safeAddEventListener('activate-camera-btn', 'click', startScanner); // Simplificado: o botão agora inicia o scanner diretamente
 
     const roomSelection = document.querySelector('#step-room-selection');
     if(roomSelection) {
@@ -163,37 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
       appState.timelineSteps = timelineNames;
       generateTimelineStepsHTML(timelineNames);
       saveState();
-  }
-
-  function showStatus(message, showButton = false) {
-    const statusElement = document.getElementById('camera-status');
-    const statusMessage = document.getElementById('camera-status-message');
-    const activateBtn = document.getElementById('activate-camera-btn');
-    if (statusElement && statusMessage && activateBtn) {
-        statusMessage.textContent = message;
-        activateBtn.style.display = showButton ? 'block' : 'none';
-        statusElement.style.display = 'flex';
-    }
-  }
-
-  function hideStatus() {
-    const statusElement = document.getElementById('camera-status');
-    const cameraContainer = document.getElementById('camera-container');
-    if (statusElement) statusElement.style.display = 'none';
-    if (cameraContainer) cameraContainer.classList.add('scanning');
-  }
-
-  function showStep(stepId) {
-    document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
-    const currentStepElement = document.getElementById(`step-${stepId}`);
-    if (currentStepElement) {
-      currentStepElement.style.display = 'flex';
-      appState.currentStepId = stepId;
-      saveState();
-    }
-    if (stepId !== 'scanner' && isScanning) {
-        stopScanner();
-    }
   }
 
   function nextStep() {
