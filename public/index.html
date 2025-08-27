@@ -14,7 +14,6 @@
     <link href="output.css" rel="stylesheet">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
-    <!-- Estilos para o guia visual da câmara -->
     <style>
         .camera-container {
             position: relative;
@@ -67,9 +66,9 @@
                     <h2 class="step-title">Identificação</h2>
                     <p class="step-subtitle">Centralize o código na área marcada.</p>
                 </div>
-                <!-- ATUALIZAÇÃO: Container com botão de ativação -->
                 <div id="camera-container" class="camera-container">
                     <video id="video-preview" class="camera-preview" autoplay playsinline muted></video>
+                    <canvas id="canvas-preview" style="display: none;"></canvas>
                     <div id="camera-status" class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 bg-black/70">
                         <p id="camera-status-message">Toque no botão para ativar a câmara.</p>
                         <button id="activate-camera-btn" class="btn-revolutionary btn-primary mt-4">Ativar Câmara</button>
@@ -83,7 +82,6 @@
             </div>
         </section>
 
-        <!-- Outras seções do HTML (sem alterações) -->
         <section id="step-room-selection" class="step-container" style="display: none;">
             <div class="step-card text-center">
                  <h2 class="step-title">Paciente: <span id="patient-id-display" class="text-white">--</span></h2>
@@ -136,7 +134,7 @@
 
     <footer class="absolute bottom-4 text-center w-full">
         <a href="./painel-gestor.html" target="_blank" class="text-white/50 text-sm hover:text-white/80 transition-colors">
-            Acessar ao Painel Gestor
+            Aceder ao Painel Gestor
         </a>
     </footer>
 
