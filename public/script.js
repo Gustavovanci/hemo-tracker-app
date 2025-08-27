@@ -1,8 +1,9 @@
 /*
-  HemoFlow Coletor v6.6
-  - Corrigido bug na UI do scanner onde a mensagem de permissão não desaparecia.
-  - Textos e mensagens de erro totalmente em Português do Brasil.
-  - Mantém scanner de alta performance, persistência de estado e fluxo dinâmico.
+  HemoFlow Coletor v6.7
+  - Revertido para um scanner mais simples e rápido (decodeFromVideoDevice) para máxima compatibilidade e velocidade.
+  - Removida a complexidade do pré-processamento de canvas.
+  - Mantém persistência de estado e fluxo dinâmico da Sala 3.
+  - Todos os textos em Português do Brasil.
 */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -15,12 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let codeReader = null;
   let isScanning = false;
-  let mediaStream = null;
-  let animationFrameId = null;
-
-  const videoElement = document.getElementById('video-preview');
-  const canvasElement = document.getElementById('canvas-preview');
-  const canvasContext = canvasElement.getContext('2d', { willReadFrequently: true });
 
   const STANDARD_TIMELINE_STEPS = [
     'Chegada na Hemodinâmica', 'Entrada na Sala', 'Início da Cobertura',
@@ -42,99 +37,68 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
   }
 
-  // --- LÓGICA DO SCANNER DE ALTA PERFORMANCE (CORRIGIDA) ---
+  // --- LÓGICA DO SCANNER SIMPLES E RÁPIDO ---
 
-  function processFrameAndDecode() {
-      if (!isScanning || !codeReader) return;
-      
-      if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-          canvasElement.width = videoElement.videoWidth;
-          canvasElement.height = videoElement.videoHeight;
-          canvasContext.filter = 'grayscale(1) contrast(175%) brightness(110%)';
-          canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-          
-          try {
-              const result = codeReader.decodeFromCanvas(canvasElement);
+  async function startScanner() {
+      if (isScanning) return;
+
+      const videoElement = document.getElementById('video-preview');
+      const hints = new Map();
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX]);
+      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+      codeReader = new ZXing.BrowserMultiFormatReader(hints);
+      isScanning = true;
+      hideStatus();
+      console.log("Scanner simples iniciado...");
+
+      try {
+          // A biblioteca agora gerencia o stream de vídeo diretamente
+          await codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
               if (result) {
                   onScanSuccess(result.getText());
-                  return; 
               }
-          } catch (err) {
-              if (!(err instanceof ZXing.NotFoundException)) {
-                  console.error("Erro na decodificação do canvas:", err);
+              if (err && !(err instanceof ZXing.NotFoundException)) {
+                  console.error("Erro no scanner:", err);
               }
-          }
-      }
-      animationFrameId = requestAnimationFrame(processFrameAndDecode);
-  }
-
-  async function activateCamera() {
-      if (isScanning) return;
-      showStatus('Solicitando permissão para a câmera...', false);
-      try {
-          mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          videoElement.srcObject = mediaStream;
-          
-          // **CORREÇÃO:** O evento 'playing' garante que o vídeo está de fato sendo exibido
-          // antes de mudarmos a UI e iniciarmos o scanner.
-          videoElement.addEventListener('playing', () => {
-              startScanner();
-          }, { once: true });
-
+          });
       } catch (err) {
-          console.error("Erro ao obter permissão da câmera:", err);
+          console.error("Erro ao iniciar o scanner:", err);
           let errorMessage = "Erro ao acessar a câmera.";
            if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
               errorMessage = "Permissão para a câmera negada. Por favor, autorize o acesso nas configurações do seu navegador e atualize a página.";
-          } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-              errorMessage = "Nenhuma câmera traseira foi encontrada no seu dispositivo.";
           } else {
               errorMessage = `Erro: ${err.name}. Verifique as permissões e se a página está em um endereço seguro (HTTPS).`;
           }
           showStatus(errorMessage, true);
+          isScanning = false;
       }
-  }
-
-  function startScanner() {
-    const hints = new Map();
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.DATA_MATRIX, ZXing.BarcodeFormat.QR_CODE]);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-    hints.set(ZXing.DecodeHintType.ALSO_INVERTED, true);
-
-    codeReader = new ZXing.BrowserMultiFormatReader(hints);
-    isScanning = true;
-    hideStatus(); // Esconde a mensagem e mostra a interface de scan
-    console.log("Scanner de alta performance ativo...");
-    animationFrameId = requestAnimationFrame(processFrameAndDecode);
   }
 
   function stopScanner() {
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+      if (codeReader) {
+          codeReader.reset();
+          codeReader = null;
+      }
+      isScanning = false;
+      const cameraContainer = document.getElementById('camera-container');
+      if (cameraContainer) cameraContainer.classList.remove('scanning');
+      showStatus('Toque no botão para ativar a câmera.', true);
+  }
+  
+  function onScanSuccess(decodedText) {
+    if (isScanning) {
+        console.log("Código lido com sucesso:", decodedText);
+        isScanning = false; // Importante para evitar leituras múltiplas
+        if (navigator.vibrate) navigator.vibrate([150]);
+        // Parar o scanner imediatamente após a leitura
+        stopScanner();
+        processPatientId(decodedText);
     }
-    if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-        mediaStream = null;
-    }
-    isScanning = false;
-    codeReader = null;
-    const cameraContainer = document.getElementById('camera-container');
-    if (cameraContainer) cameraContainer.classList.remove('scanning');
-    showStatus('Toque no botão para ativar a câmera.', true);
   }
 
-  function onScanSuccess(decodedText) {
-      if (isScanning) {
-          console.log("Código lido com sucesso:", decodedText);
-          isScanning = false;
-          if (navigator.vibrate) navigator.vibrate([150, 50, 150]);
-          processPatientId(decodedText);
-      }
-  }
-  
-  // --- LÓGICA DA APLICAÇÃO (UI, ESTADO, ETC.) ---
-  
+  // O restante do código permanece o mesmo...
+
   function generateTimelineStepsHTML(stepNames) {
     mainContainer.querySelectorAll('section[id^="step-timeline-"]').forEach(el => el.remove());
     stepNames.forEach((name, index) => {
@@ -166,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     safeAddEventListener('save-btn', 'click', saveToGoogleSheets);
     safeAddEventListener('new-patient-btn', 'click', resetSystem);
     safeAddEventListener('destino-select', 'change', validateFinalForm);
-    safeAddEventListener('activate-camera-btn', 'click', activateCamera);
+    safeAddEventListener('activate-camera-btn', 'click', startScanner); // Simplificado: o botão agora inicia o scanner diretamente
 
     const roomSelection = document.querySelector('#step-room-selection');
     if(roomSelection) {
@@ -227,7 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
       appState.currentStepId = stepId;
       saveState();
     }
-    if (stepId !== 'scanner' && isScanning) stopScanner();
+    if (stepId !== 'scanner' && isScanning) {
+        stopScanner();
+    }
   }
 
   function nextStep() {
