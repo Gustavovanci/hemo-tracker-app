@@ -1,9 +1,8 @@
 /*
-  HemoFlow Coletor v6.8
-  - Implementado scanner com a biblioteca 'html5-qrcode' para máxima confiabilidade.
-  - O scanner agora inicia automaticamente ao entrar na etapa, de forma simples e direta.
-  - Mantém persistência de estado e fluxo dinâmico da Sala 3.
-  - Todos os textos em Português do Brasil.
+  HemoFlow Coletor v6.9
+  - Mantida a implementação do scanner 'html5-qrcode'.
+  - Adicionada verificação para garantir que a biblioteca do scanner esteja carregada antes do uso,
+    prevenindo o erro 'Html5Qrcode is not defined'.
 */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -14,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentStepId: null, patientId: null, selectedSala: null, stepTimes: {}, timelineSteps: [],
   };
 
-  let html5QrCode = null; // Variável para controlar a instância do scanner
+  let html5QrCode = null;
 
   const STANDARD_TIMELINE_STEPS = [
     'Chegada na Hemodinâmica', 'Entrada na Sala', 'Início da Cobertura',
@@ -36,35 +35,33 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
   }
 
-  // --- LÓGICA DO NOVO SCANNER (html5-qrcode) ---
+  // --- LÓGICA DO SCANNER ---
 
   const onScanSuccess = (decodedText, decodedResult) => {
-    // Para o scanner para evitar múltiplas leituras e liberar a câmera
     stopScanner();
     console.log(`Código lido com sucesso: ${decodedText}`);
     if (navigator.vibrate) navigator.vibrate(200);
     processPatientId(decodedText);
   };
 
-  const onScanFailure = (error) => {
-    // A biblioteca já mostra um log, então não precisamos fazer nada aqui
-    // a não ser que queiramos um tratamento de erro específico.
-  };
+  const onScanFailure = (error) => {};
 
   function startScanner() {
-    // Previne múltiplas instâncias
-    if (html5QrCode && html5QrCode.isScanning) {
-      return;
+    // **VERIFICAÇÃO DE SEGURANÇA**
+    // Garante que a biblioteca foi carregada antes de tentar usá-la.
+    if (typeof Html5Qrcode === 'undefined') {
+        alert("Erro: A biblioteca do scanner não conseguiu carregar. Verifique sua conexão com a internet e atualize a página.");
+        return;
     }
+
+    if (html5QrCode && html5QrCode.isScanning) return;
 
     html5QrCode = new Html5Qrcode("reader");
     const config = { 
         fps: 10, 
         qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true, // Melhora a experiência do usuário
-        supportedScanTypes: [
-            Html5QrcodeScanType.SCAN_TYPE_CAMERA
-        ]
+        rememberLastUsedCamera: true,
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
     };
 
     html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
@@ -76,11 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function stopScanner() {
       if (html5QrCode && html5QrCode.isScanning) {
-          html5QrCode.stop().then(() => {
-              console.log("Scanner parado com sucesso.");
-          }).catch(err => {
-              console.error("Falha ao parar o scanner.", err);
-          });
+          html5QrCode.stop().catch(err => console.error("Falha ao parar o scanner.", err));
       }
   }
 
@@ -96,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
     }
     
-    // Gerencia o scanner baseado no passo
     if (stepId === 'scanner') {
         startScanner();
     } else {
@@ -104,8 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // O resto do código permanece o mesmo...
-
   function generateTimelineStepsHTML(stepNames) {
     mainContainer.querySelectorAll('section[id^="step-timeline-"]').forEach(el => el.remove());
     stepNames.forEach((name, index) => {
