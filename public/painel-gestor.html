@@ -115,6 +115,8 @@
           <select id="sala-filter" class="w-full enhanced-select"><option value="all" selected>Todas as Salas</option><option value="Sala 1">Sala 1</option><option value="Sala 5">Sala 5</option></select>
           <select id="group-filter" class="w-full enhanced-select"><option value="day" selected>Agrupar por Dia</option><option value="week">Agrupar por Semana</option><option value="month">Agrupar por Mês</option></select>
           <div><label class="text-sm text-gray-300 font-semibold">Meta de Giro (SLA, em minutos)</label><input id="sla-input" type="number" min="1" step="1" value="60" class="w-full mt-2 enhanced-input"></div>
+          <!-- NOVO: Demanda (procedimentos/dia) -->
+          <div><label class="text-sm text-gray-300 font-semibold">Demanda (procedimentos/dia)</label><input id="demand-input" type="number" min="1" step="1" value="30" class="w-full mt-2 enhanced-input"></div>
           <select id="source-filter" class="w-full enhanced-select"><option value="all" selected>Todas as Fontes</option><option value="App">App (PWA)</option><option value="Manual">Profissional (Manual)</option><option value="Câmera">Câmera</option></select>
           <p class="text-xs text-white/60 mt-2">Se a planilha não possuir "Fonte/Origem/Coleta", assumimos "App".</p>
         </div>
@@ -132,6 +134,11 @@
         <a class="nav-item flex items-center p-4" data-section="analises-graficas">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 002 2v2a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2-2V3a2 2 0 012-2h2a2 2 0 012 2v2z" /></svg>
           <span class="font-semibold whitespace-nowrap">Análises Gráficas</span>
+        </a>
+        <!-- NOVO: Seção de Análises Lean -->
+        <a class="nav-item flex items-center p-4" data-section="analises-lean">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L8 21l-1.75-4M15 17l-1.75 4L11.5 17M3 3h18M7 7h10M7 11h6"/></svg>
+          <span class="font-semibold whitespace-nowrap">Análises Lean</span>
         </a>
       </nav>
     </div>
@@ -200,6 +207,19 @@
           <div class="kpi-card"><h3 class="text-gray-300 font-bold text-base break-words">Conformidade com SLA <span class="ml-2 text-xs text-white/60 cursor-help" title="% de casos com giro ≤ a meta (min).">💡</span></h3><div class="flex items-center justify-between mt-3"><p id="kpi-sla" class="kpi-value">--%</p><span class="badge bg-blue-500/20 text-blue-300">Meta: <b id="kpi-sla-target">60</b> min</span></div><div class="progress mt-4"><span id="kpi-sla-bar" style="width:0%"></span></div><p class="text-sm text-white/70 mt-2">% de procedimentos dentro da meta.</p></div>
           <div class="kpi-card"><h3 class="text-gray-300 font-bold text-base break-words">Throughput Médio / Dia <span class="ml-2 text-xs text-white/60 cursor-help" title="Procedimentos/dia no período filtrado.">💡</span></h3><p id="kpi-throughput" class="kpi-value text-green-400">0</p><p class="text-sm text-white/70 mt-2">Capacidade média diária.</p></div>
           <div class="kpi-card"><h3 class="text-gray-300 font-bold text-base break-words">Gargalo Atual (mediano) <span class="ml-2 text-xs text-white/60 cursor-help" title="Segmento A→B com maior mediana (empate: maior IQR).">💡</span></h3><p id="kpi-gargalo" class="font-bold text-red-400 mt-3 break-words">--</p><p class="text-sm text-white/70 mt-2">Alvo de Kaizen.</p></div>
+
+          <!-- NOVO KPI: Takt Time -->
+          <div class="kpi-card">
+            <h3 class="text-gray-300 font-bold text-base break-words">
+              Ritmo da Demanda (Takt Time)
+              <span class="ml-2 text-xs text-white/60 cursor-help" title="Tempo máximo por procedimento para atender à demanda diária. Considera 12h úteis/dia por padrão.">💡</span>
+            </h3>
+            <div class="mt-3 flex items-baseline gap-4">
+              <p id="kpi-takt" class="kpi-value">-- min</p>
+              <span id="kpi-takt-status" class="badge bg-blue-500/20 text-blue-300">Demanda: <b id="kpi-demand-val">30</b>/dia</span>
+            </div>
+            <p class="text-sm text-white/70 mt-2">Compara a mediana de giro com o Takt (Lean).</p>
+          </div>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6">
@@ -264,6 +284,71 @@
         <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Agendamento Inteligente — Melhores Horários</h2><span class="text-xs text-white/60">Seg–Sex, 07–19.</span></div><div class="grid lg:grid-cols-3 gap-6"><div class="lg:col-span-1"><h3 class="font-bold mb-3 text-white/90 text-lg">Top Horários Recomendados</h3><ul id="top-hours-list" class="space-y-3"></ul></div><div class="lg:col-span-2"><div class="chart-container" style="height:320px;"><canvas id="hour-compliance-chart"></canvas></div></div></div></div>
         <div class="card"><div class="flex items-center justify-between mb-4"><h2 class="text-xl font-extrabold">Heatmap de Gargalos por Sala</h2><span class="text-xs text-white/60">Valores em minutos. Cores vs mediana global.</span></div><div id="bottleneck-heatmap" class="overflow-x-auto"></div></div>
       </div>
+
+      <!-- NOVA SEÇÃO: ANÁLISES LEAN -->
+      <div id="section-analises-lean" class="section-content hidden space-y-8">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <!-- CEP -->
+          <div class="card xl:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-extrabold">CEP — Controlo de Processo (Tempo de Giro)</h2>
+              <span class="badge bg-blue-500/20 text-blue-300">CL = média • LSC/LIC = ±3σ</span>
+            </div>
+            <div class="chart-container" style="height:420px;">
+              <canvas id="cep-chart"></canvas>
+            </div>
+            <p class="text-xs text-white/60 mt-3">
+              Pontos <b style="color:#ef4444;">vermelhos</b> fora de LSC/LIC indicam <b>causas especiais</b> (Mura). Investigação recomendada.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <!-- VSM Donut -->
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-extrabold">Mapa de Fluxo de Valor (VSM) — VA vs NVA</h2>
+              <span class="badge bg-blue-500/20 text-blue-300">Proporção global</span>
+            </div>
+            <div class="chart-container" style="height:360px;">
+              <canvas id="vsm-donut-chart"></canvas>
+            </div>
+            <p class="text-xs text-white/60 mt-3">
+              Lean — <b>Muda</b> (desperdício): evidencia o % do tempo total gasto fora do procedimento.
+            </p>
+          </div>
+
+          <!-- Pareto NVA -->
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-extrabold">Pareto dos Gargalos (Somente NVA)</h2>
+              <span class="badge bg-blue-500/20 text-blue-300">Barras = mediana • Linha = cumulativa</span>
+            </div>
+            <div class="chart-container" style="height:360px;">
+              <canvas id="pareto-nva-chart"></canvas>
+            </div>
+            <p class="text-xs text-white/60 mt-3">
+              Foque no <b>pouco vital</b> (80/20) para maior impacto nos projetos Kaizen.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+          <!-- Box Plot Lean (extra) -->
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-extrabold">Box Plot por Etapa (Lean)</h2>
+              <span class="badge bg-blue-500/20 text-blue-300">Mura: variabilidade por etapa</span>
+            </div>
+            <div class="chart-container" style="height:420px;">
+              <canvas id="boxplot-lean-chart"></canvas>
+            </div>
+            <p class="text-xs text-white/60 mt-3">
+              Complementa a visão do CEP: quais etapas concentram maior variabilidade e outliers.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -290,8 +375,10 @@
     const ALERT_LIMITS_SEG = { cheg_entr: 30, entr_iniCob: 10, cobertura: 15, pos_cob: 5, proc: 60, pos_proc: 10, saida_iniLimp: 5, limpeza: 15 };
     const BIN_SIZE_MIN = 5;
     const palette = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#e11d48'];
+    // NOVO: Tempo útil por dia (min) para Takt Time (ajustável)
+    const WORK_MIN_PER_DAY = 12 * 60; // 12 horas úteis/dia (07–19)
 
-    // Registra plugin de datalabels se disponível (usado no VA×NVA)
+    // Registra plugin de datalabels se disponível (usado no VA×NVA e VSM donut)
     try { if (window.ChartDataLabels) { Chart.register(window.ChartDataLabels); } } catch(_) {}
 
     // ====================== STATE ======================
@@ -312,11 +399,15 @@
       dateFilter: document.getElementById('date-filter'), salaFilter: document.getElementById('sala-filter'),
       groupFilter: document.getElementById('group-filter'), slaInput: document.getElementById('sla-input'),
       sourceFilter: document.getElementById('source-filter'),
+      // KPIs originais
       kpiMediana: document.getElementById('kpi-mediana'), kpiP90: document.getElementById('kpi-p90'), kpiSLA: document.getElementById('kpi-sla'),
       kpiSlaBar: document.getElementById('kpi-sla-bar'), kpiSlaTarget: document.getElementById('kpi-sla-target'), kpiThroughput: document.getElementById('kpi-throughput'),
       kpiGargalo: document.getElementById('kpi-gargalo'), quadSlaTarget: document.getElementById('quad-sla-target'),
       andonList: document.getElementById('andon-list'), alertsSummary: document.getElementById('alerts-summary'), alertsTop: document.getElementById('alerts-top'),
-      exportP90Btn: document.getElementById('export-p90-btn'), slowCasesBody: document.getElementById('slow-cases-body'), sourceSection: document.getElementById('source-section')
+      exportP90Btn: document.getElementById('export-p90-btn'), slowCasesBody: document.getElementById('slow-cases-body'), sourceSection: document.getElementById('source-section'),
+      // NOVOS: input Demanda e KPI Takt
+      demandInput: document.getElementById('demand-input'),
+      kpiTakt: document.getElementById('kpi-takt'), kpiTaktStatus: document.getElementById('kpi-takt-status'), kpiDemandVal: document.getElementById('kpi-demand-val')
     };
 
     // ====================== HELPERS ======================
@@ -329,6 +420,7 @@
     const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     const median = arr => { const a=arr.slice().sort((x,y)=>x-y); const n=a.length; if(!n) return null; const m=Math.floor(n/2); return n%2? a[m]: (a[m-1]+a[m])/2; };
     const percentile = (arr,p)=>{ if(!arr.length) return null; const a=arr.slice().sort((x,y)=>x-y); const idx=(p/100)*(a.length-1); const lo=Math.floor(idx), hi=Math.ceil(idx); if(lo===hi) return a[lo]; return a[lo]+(a[hi]-a[lo])*(idx-lo); };
+    const stdev = arr => { if(!arr.length) return 0; const mu = safeAvg(arr); const v = safeAvg(arr.map(x => (x-mu)*(x-mu))); return Math.sqrt(v); };
     const slaLine = (getY)=>({ id:'slaLine', afterDatasetsDraw(chart){ const {ctx, chartArea:{left,right}, scales:{y}}=chart; const yv=getY(); if(!yv||!y) return; const py=y.getPixelForValue(yv); ctx.save(); ctx.beginPath(); ctx.setLineDash([6,6]); ctx.strokeStyle='rgba(218,37,28,0.8)'; ctx.lineWidth=2; ctx.moveTo(left,py); ctx.lineTo(right,py); ctx.stroke(); ctx.restore(); }});
 
     // ====================== UI EVENTOS ======================
@@ -342,6 +434,8 @@
       dom.logoutBtn?.addEventListener('click', doLogout);
       document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', ()=> switchSection(item.dataset.section)));
       [dom.dateFilter, dom.salaFilter, dom.groupFilter, dom.slaInput, dom.sourceFilter].forEach(el => el.addEventListener('change', updateDisplay));
+      // NOVO: atualização ao mudar demanda
+      dom.demandInput?.addEventListener('change', updateDisplay);
       dom.exportP90Btn.addEventListener('click', exportCSVAboveP90);
     }
 
@@ -376,7 +470,7 @@
     function switchSection(sectionName){
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.section===sectionName));
       document.querySelectorAll('.section-content').forEach(section => section.classList.toggle('hidden', section.id!==`section-${sectionName}`));
-      const sectionTitles = { 'visao-geral': 'Visão Geral', 'analise-salas': 'Análise de Salas', 'analises-graficas': 'Análises Gráficas' };
+      const sectionTitles = { 'visao-geral': 'Visão Geral', 'analise-salas': 'Análise de Salas', 'analises-graficas': 'Análises Gráficas', 'analises-lean': 'Análises Lean' };
       dom.headerTitle.textContent = sectionTitles[sectionName] || 'Dashboard';
       if(window.innerWidth < 1024){ dom.sidebar.classList.remove('open'); }
     }
@@ -540,9 +634,18 @@
     // ====================== RENDER ======================
     function updateDisplay(){
       if(!currentData) return;
-      const filters = { dateRange: dom.dateFilter.value, sala: dom.salaFilter.value, group: dom.groupFilter.value, sla: parseInt(dom.slaInput.value || '60',10), source: dom.sourceFilter.value };
+      const filters = { 
+        dateRange: dom.dateFilter.value, 
+        sala: dom.salaFilter.value, 
+        group: dom.groupFilter.value, 
+        sla: parseInt(dom.slaInput.value || '60',10), 
+        source: dom.sourceFilter.value,
+        demand: parseInt((dom.demandInput?.value || '0'),10) || 0
+      };
       dom.kpiSlaTarget.textContent = filters.sla;
       dom.quadSlaTarget.textContent = filters.sla;
+      if (dom.kpiDemandVal) dom.kpiDemandVal.textContent = filters.demand > 0 ? filters.demand : '—';
+
       const filtered = filterData(currentData.analysis, filters);
       renderDashboard(filtered, filters);
     }
@@ -552,6 +655,9 @@
       const metrics = calcMetrics(allProcedures);
       if(!metrics){ showState('error'); dom.errorMessage.textContent = "Nenhum dado válido para os filtros selecionados."; return; }
       renderKPIs(metrics, filters.sla);
+      // NOVO: KPI de Takt Time
+      try { renderTaktKPI(metrics, filters.demand); } catch(_) {}
+
       renderPerformance(analysis, filters, allProcedures);
       renderParetoSegments(metrics);
       renderAndon(analysis, filters.sla);
@@ -566,8 +672,13 @@
       renderSmartScheduling(allProcedures, filters.sla);
 
       // ======= NOVOS GRÁFICOS LEAN =======
-      renderBoxplotSegments(analysis);  // Variabilidade por etapa (Mura)
-      renderVAvsNVA(analysis);          // Valor agregado vs desperdício (Muda)
+      renderBoxplotSegments(analysis);        // existente (Análises Gráficas)
+      renderVAvsNVA(analysis);                // existente (Análise de Salas)
+      // Novos na seção "Análises Lean":
+      try { renderCEP(allProcedures); } catch(_) {}
+      try { renderVSMDonut(analysis); } catch(_) {}
+      try { renderParetoNVA(analysis); } catch(_) {}
+      try { renderBoxplotLean(analysis); } catch(_) {}
 
       showState('content');
     }
@@ -581,6 +692,23 @@
       dom.kpiThroughput.textContent = (m.throughputDia||0).toFixed(1);
       const gSeg = SEGMENTS.find(s=> s.key===m.gargalo.key);
       dom.kpiGargalo.textContent = (!gSeg || m.gargalo.val==null) ? '--' : `${gSeg.label} • ${fmtMin(m.gargalo.val)}`;
+    }
+
+    // NOVO: KPI Takt Time
+    function renderTaktKPI(metrics, demand){
+      const taktElem = dom.kpiTakt, statusElem = dom.kpiTaktStatus;
+      if(!taktElem || !statusElem) return;
+      if(!demand || demand<=0){
+        taktElem.textContent = '—';
+        statusElem.className = 'badge bg-yellow-500/20 text-yellow-300';
+        statusElem.innerHTML = 'Defina a Demanda';
+        return;
+      }
+      const taktMin = WORK_MIN_PER_DAY / demand;
+      taktElem.textContent = fmtMin(taktMin);
+      const ok = (metrics.medianaGiro || 0) <= taktMin;
+      statusElem.className = 'badge ' + (ok ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300');
+      statusElem.innerHTML = (ok ? 'Em Ritmo' : 'Atraso') + ` • Demanda: <b>${demand}</b>/dia`;
     }
 
     function renderAndon(analysis, sla){
@@ -977,7 +1105,7 @@
       };
     }
 
-    // Renderiza o Box Plot por etapa
+    // Renderiza o Box Plot por etapa (Análises Gráficas)
     function renderBoxplotSegments(analysis){
       const canvas = document.getElementById('boxplot-segments-chart'); if(!canvas) return;
       const ctx = canvas.getContext('2d'); charts.boxplot?.destroy();
@@ -1143,6 +1271,192 @@
             }
           }
         }
+      });
+    }
+
+    // ======= NOVOS RENDERIZADORES (SEÇÃO ANÁLISES LEAN) =======
+
+    function renderCEP(procs){
+      const canvas = document.getElementById('cep-chart'); if(!canvas) return;
+      const ctx = canvas.getContext('2d'); charts.cep?.destroy();
+
+      const series = procs.filter(p=>p.totalTime>0).sort((a,b)=> a.date - b.date);
+      if(!series.length) return;
+
+      const values = series.map(p=> p.totalTime);
+      const mean = safeAvg(values);
+      const sd = stdev(values);
+      const ucl = mean + 3*sd;
+      const lcl = Math.max(0, mean - 3*sd);
+
+      const labels = series.map(p => p.date.toLocaleDateString('pt-BR'));
+      const data = values.map(v => roundMin(v));
+
+      charts.cep = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Tempo de Giro (min)',
+              data,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59,130,246,0.25)',
+              borderWidth: 2,
+              tension: 0.2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              // pontos fora do controlo em vermelho
+              pointBackgroundColor: ctx => {
+                const v = data[ctx.dataIndex];
+                return (v>ucl || v<lcl) ? '#ef4444' : '#3b82f6';
+              },
+              pointBorderColor: ctx => {
+                const v = data[ctx.dataIndex];
+                return (v>ucl || v<lcl) ? '#ef4444' : '#3b82f6';
+              }
+            },
+            // Linhas de controlo
+            { label:'CL (Média)', data: labels.map(_=> roundMin(mean)), borderColor:'#22c55e', borderDash:[6,6], pointRadius:0, borderWidth:2 },
+            { label:'LSC (+3σ)', data: labels.map(_=> roundMin(ucl)),  borderColor:'#f59e0b', borderDash:[6,6], pointRadius:0, borderWidth:2 },
+            { label:'LIC (-3σ)', data: labels.map(_=> roundMin(lcl)),  borderColor:'#f59e0b', borderDash:[6,6], pointRadius:0, borderWidth:2 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels:{ color:'#fff', font:{ size:14, weight:'bold'} } },
+            tooltip: { backgroundColor: 'rgba(17,26,43,0.95)', borderColor:'rgba(255,255,255,0.2)', borderWidth:1 }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks:{ color:'#fff', callback:v=>`${v} min` }, grid:{ color:'rgba(255,255,255,0.08)' } },
+            x: { ticks:{ color:'#fff' }, grid:{ color:'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+    }
+
+    function renderVSMDonut(analysis){
+      const canvas = document.getElementById('vsm-donut-chart'); if(!canvas) return;
+      const ctx = canvas.getContext('2d'); charts.vsm?.destroy();
+
+      const all = Object.values(analysis).flatMap(s=>s.procedures);
+      let sumVA = 0, sumNVA = 0, n = 0;
+      all.forEach(p=>{
+        const va = (typeof p.segments['proc'] === 'number' && p.segments['proc']>0) ? p.segments['proc'] : null;
+        if(va==null) return;
+        let total = 0;
+        SEGMENTS.forEach(seg=>{
+          const v = p.segments[seg.key];
+          if(typeof v==='number' && v>0) total += v;
+        });
+        if(total>0){
+          sumVA += va;
+          sumNVA += Math.max(0, total - va);
+          n++;
+        }
+      });
+      if(n===0) return;
+
+      const data = [ roundMin(sumVA), roundMin(sumNVA) ];
+      const labels = ['VA (Procedimento)', 'NVA (Desperdício)'];
+      charts.vsm = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: ['#10b981','#ef4444'], borderWidth: 2, borderColor: '#111827' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position:'bottom', labels:{ color:'#fff', font:{ size:13, weight:'bold'} } },
+            tooltip: { callbacks: { label: (c) => {
+              const total = data.reduce((a,b)=>a+b,0);
+              const val = c.parsed;
+              const pct = total ? Math.round(100*val/total) : 0;
+              return `${c.label}: ${val} min (${pct}%)`;
+            }}},
+            datalabels: window.ChartDataLabels ? {
+              color:'#fff', formatter:(value, ctx)=>{
+                const total = data.reduce((a,b)=>a+b,0);
+                if(!total) return '';
+                const pct = Math.round(100*value/total);
+                return `${pct}%`;
+              }, font:{ weight:'bold' }
+            } : undefined
+          },
+          cutout: '62%'
+        }
+      });
+    }
+
+    function renderParetoNVA(analysis){
+      const canvas = document.getElementById('pareto-nva-chart'); if(!canvas) return;
+      const ctx = canvas.getContext('2d'); charts.paretoNVA?.destroy();
+
+      const all = Object.values(analysis).flatMap(s=>s.procedures).filter(p=>p.totalTime>0);
+      if(!all.length) return;
+
+      const nvaSegments = SEGMENTS.filter(s => s.key !== 'proc');
+      const pairs = nvaSegments.map(s => {
+        const vals = all.map(p=>p.segments[s.key]).filter(v=> typeof v==='number' && v>0);
+        return { label: s.label, val: vals.length ? median(vals) : null };
+      }).filter(p => p.val != null).sort((a,b)=> b.val - a.val);
+
+      if(!pairs.length) return;
+      const labels = pairs.map(p => p.label);
+      const bars = pairs.map(p => roundMin(p.val));
+      const total = bars.reduce((a,b)=>a+b,0) || 1;
+      let run = 0; const cum = bars.map(v => { run += v; return Math.round(100*run/total); });
+
+      charts.paretoNVA = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label:'Mediana (min) — NVA', data: bars, yAxisID:'y', backgroundColor:'rgba(239,68,68,0.85)', borderRadius:8, borderSkipped:false },
+            { type:'line', label:'Cumulativa (%)', data: cum, yAxisID:'y1', borderColor:'#22c55e', backgroundColor:'#22c55e', tension:.3, borderWidth:3, pointRadius:6 }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:'#fff', font:{ size:14, weight:'bold' } } },
+                    tooltip:{ backgroundColor:'rgba(17,26,43,0.95)', borderColor:'rgba(255,255,255,0.2)', borderWidth:1 } },
+          scales:{
+            y:{ beginAtZero:true, ticks:{ color:'#fff', callback:v=>`${v} min` }, grid:{ color:'rgba(255,255,255,0.08)' } },
+            y1:{ beginAtZero:true, max:100, position:'right', ticks:{ color:'#fff', callback:v=>`${v}%` }, grid:{ display:false } },
+            x:{ ticks:{ color:'#fff', font:{ size:11 } }, grid:{ color:'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+    }
+
+    function renderBoxplotLean(analysis){
+      const canvas = document.getElementById('boxplot-lean-chart'); if(!canvas) return;
+      const ctx = canvas.getContext('2d'); charts.boxplotLean?.destroy();
+
+      const stats = computeSegmentBoxStats(analysis);
+      const labels = stats.map(s => s.label);
+      const iqrData = stats.map(s => (s.q1!=null && s.q3!=null) ? [s.q1, s.q3] : [null, null]);
+      const medData = stats.map(s => s.median!=null ? s.median : null);
+
+      charts.boxplotLean = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label:'IQR (Q1–Q3)', data: iqrData, backgroundColor:'rgba(99,102,241,0.22)', borderColor:'rgba(99,102,241,0.85)', borderWidth:2, borderSkipped:false, barThickness:28 },
+            { type:'line', label:'Mediana', data: medData, borderColor:'#22c55e', backgroundColor:'#22c55e', borderWidth:3, pointRadius:0, tension:0, spanGaps:true }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:'#fff', font:{ size:14, weight:'bold'} } },
+                   tooltip:{ backgroundColor:'rgba(17,26,43,0.95)', borderColor:'rgba(255,255,255,0.2)', borderWidth:1 } },
+          scales:{ y:{ beginAtZero:true, ticks:{ color:'#fff', callback:v=>`${roundMin(v)} min` }, grid:{ color:'rgba(255,255,255,0.08)' } },
+                   x:{ ticks:{ color:'#fff', font:{ size:11 } }, grid:{ color:'rgba(255,255,255,0.05)' } } }
+        },
+        plugins:[ makeWhiskerPlugin(stats) ]
       });
     }
 
